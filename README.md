@@ -69,7 +69,7 @@ GymManagement (solución)
 
 ---
 
-## 📁 Estructura del Dominio (en construcción)
+## 📁 Estructura del Dominio
 
 Las entidades principales del sistema son:
 
@@ -84,7 +84,25 @@ Las entidades principales del sistema son:
 - `Notificacion`
 - `Auditoria`
 
-> ✅ **Estado actual**: Se está implementando la entidad `Alumno` y su persistencia básica.
+---
+
+## Entidades y Contratos
+
+El sistema sigue una arquitectura limpia con separación clara de capas:
+
+- **Domain**: Contiene las entidades del negocio (`Alumno`, `Profesor`, `Clase`, `Membresia`, etc.).
+- **Contract**: Define los DTOs (Data Transfer Objects) que la API expone:
+  - **Alumno**:  
+    - `CreateAlumnoRequest`: datos necesarios para registrar un nuevo alumno.  
+    - `AlumnoResponse`: información devuelta tras la creación.
+
+  - **Profesor**:  
+    - `CreateProfesorRequest`: datos básicos para dar de alta un profesor.  
+    - `ProfesorResponse`: perfil público del profesor.
+
+  - **Reserva**:  
+    - `CreateReservaRequest`: vincula un alumno a una clase específica.  
+    - `ReservaResponse`: confirma la reserva con estado y fecha.
 
 ---
 
