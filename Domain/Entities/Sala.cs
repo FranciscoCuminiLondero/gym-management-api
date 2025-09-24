@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public class Plan
+    public class Sala
     {
         public int Id { get; set; }
         public string Nombre { get; set; }
+        public int Capacidad { get; set; }
         public string Descripcion { get; set; }
-        public decimal Precio { get; set; }
-        public int DuracionDias { get; set; }
-        public bool Activo {  get; set; }
-        public List<Membresia> Membresias { get; set; }
+
+        public Sucursal Sucursal { get; set; }
+        public List<Clase> Clases { get; set; }
     }
 }
