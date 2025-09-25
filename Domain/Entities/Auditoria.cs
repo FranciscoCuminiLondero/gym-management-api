@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domain.Entities
+﻿namespace Domain.Entities
 {
-    public class Auditoria
+    public class Auditoria : BaseEntity
     {
-        public int Id { get; set; }
         public string Accion { get; set; }
         public string Entidad { get; set; }
         public string Detalle { get; set; }

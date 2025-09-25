@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domain.Entities
+﻿namespace Domain.Entities
 {
-    public class Membresia
+    public class Membresia : BaseEntity
     {
-        public int Id { get; set; }
         public int AlumnoId { get; set; }
         public int PlanId {  get; set; }
         public DateOnly FechaInicio  { get; set; }

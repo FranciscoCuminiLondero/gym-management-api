@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domain.Entities
 {
-    public class Clase
+    public class Clase : BaseEntity
     {
-        public int Id { get; set; }
         public int ProfesorId { get; set; }
         public int SalaId { get; set; }
         public int SucursalId { get; set; }
