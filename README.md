@@ -104,6 +104,14 @@ El sistema sigue una arquitectura limpia con separación clara de capas:
     - `CreateReservaRequest`: vincula un alumno a una clase específica.  
     - `ReservaResponse`: confirma la reserva con estado y fecha.
 
+## Endpoints disponibles
+
+- **`GET /api/alumnos`**: obtiene la lista de todos los alumnos registrados.
+- **`GET /api/alumnos/{id}`**: obtiene los datos de un alumno por su ID.
+- **`POST /api/alumnos`**: registra un nuevo alumno. Requiere nombre, apellido, DNI, email, teléfono y fecha de nacimiento.
+
+El sistema valida automáticamente que el DNI no esté duplicado y que los campos obligatorios no estén vacíos.
+
 ---
 
 ## ▶️ Cómo ejecutar
