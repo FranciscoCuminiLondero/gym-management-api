@@ -9,5 +9,6 @@
         public string Telefono { get; set; }
         public DateOnly FechaNacimiento { get; set; }
         public bool Activo {  get; set; }
+        public List<Membresia> Membresias { get; set; }
     }
 }

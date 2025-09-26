@@ -8,9 +8,16 @@ namespace Application.Services
     public class ReservaService : IReservaService
     {
         private readonly IReservaRepository _reservaRepository;
-        public ReservaService(IReservaRepository reservaRepository)
+        private readonly IAlumnoRepository _alumnoRepository;
+        private readonly IClaseRepository _claseRepository;
+        public ReservaService(
+            IReservaRepository reservaRepository,
+            IAlumnoRepository alumnoRepository,
+            IClaseRepository claseRepository)
         {
             _reservaRepository = reservaRepository;
+            _alumnoRepository = alumnoRepository;
+            _claseRepository = claseRepository;
         }
 
         public bool Create(CreateReservaRequest request)
@@ -18,7 +25,22 @@ namespace Application.Services
             if (request == null || request.AlumnoId <= 0 || request.ClaseId <= 0)
                 return false;
 
+            if (!_alumnoRepository.IsActivo(request.AlumnoId))
+                return false;
+
+            if (!_alumnoRepository.HasMembresiaActiva(request.AlumnoId))
+                return false;
+
+            // 3. Validar que la clase exista, esté activa y no haya pasado
+            var clase = _claseRepository.GetById(request.ClaseId);
+            if (clase == null || !clase.Activa || clase.Fecha < DateOnly.FromDateTime(DateTime.Today))
+                return false;
+
             if (_reservaRepository.ExistsByAlumnoAndClase(request.AlumnoId, request.ClaseId))
+                return false;
+
+            var reservasActuales = _reservaRepository.GetByClaseId(clase.Id).Count;
+            if (reservasActuales >= clase.Capacidad)
                 return false;
 
             var nuevaReserva = new Reserva
