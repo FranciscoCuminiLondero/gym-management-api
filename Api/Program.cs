@@ -45,6 +45,14 @@ builder.Services.AddScoped<IClaseRepository, ClaseRepository>();
 
 var app = builder.Build();
 
+// Aplicar migraciones en producción
+if (!app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<GymDbContext>();
+    context.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("ENABLE_SWAGGER") == "true")
 {
@@ -52,7 +60,7 @@ if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("ENABL
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Gym Management API v1");
-        options.RoutePrefix = string.Empty; // Swagger en "/"
+        options.RoutePrefix = string.Empty;
     });
 }
 
