@@ -13,29 +13,39 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Detectar si estamos en Render (usa una variable de entorno que Render siempre define)
+var isRender = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER"));
 
-// Si estás en Render, usa la variable DATABASE_URL
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrEmpty(databaseUrl))
+string connectionString;
+if (isRender)
 {
-    // Parsear DATABASE_URL de Render (es un string de conexión estándar)
+    // Render: usa PostgreSQL
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (string.IsNullOrEmpty(databaseUrl))
+        throw new InvalidOperationException("DATABASE_URL is required in Render environment.");
     connectionString = databaseUrl;
+    builder.Services.AddDbContext<GymDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else
+{
+    // Local: usa SQLite
+    connectionString = "Data Source=gym.db";
+    builder.Services.AddDbContext<GymDbContext>(options =>
+        options.UseSqlite(connectionString));
 }
 
-builder.Services.AddDbContext<GymDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
+// Registro de servicios y repositorios
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
-builder.Services.AddScoped<Application.Abstractions.IProfesorRepository, ProfesorRepository>();
+builder.Services.AddScoped<IProfesorService, ProfesorService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IClaseService, ClaseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
-builder.Services.AddScoped<Application.Abstractions.IProfesorRepository, ProfesorRepository>();
+builder.Services.AddScoped<IProfesorRepository, ProfesorRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
-builder.Services.AddScoped<IClaseRepository, ClaseRepository>();    
+builder.Services.AddScoped<IClaseRepository, ClaseRepository>();
 
 var app = builder.Build();
 
