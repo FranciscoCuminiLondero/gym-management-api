@@ -7,19 +7,16 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Detectar si estamos en Render (usa una variable de entorno que Render siempre define)
+// Detectar si estamos en Render
 var isRender = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER"));
 
 string connectionString;
 if (isRender)
 {
-    // Render: usa PostgreSQL
     var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
     if (string.IsNullOrEmpty(databaseUrl))
         throw new InvalidOperationException("DATABASE_URL is required in Render environment.");
@@ -29,7 +26,6 @@ if (isRender)
 }
 else
 {
-    // Local: usa SQLite
     connectionString = "Data Source=gym.db";
     builder.Services.AddDbContext<GymDbContext>(options =>
         options.UseSqlite(connectionString));
@@ -50,16 +46,18 @@ builder.Services.AddScoped<IClaseRepository, ClaseRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())    
+if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("ENABLE_SWAGGER") == "true")
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Gym Management API v1");
+        options.RoutePrefix = string.Empty; // Swagger en "/"
+    });
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
