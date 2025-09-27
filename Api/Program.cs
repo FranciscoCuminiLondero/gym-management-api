@@ -12,6 +12,21 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    builder.Services.AddDbContext<GymDbContext>(options =>
+        options.UseNpgsql(databaseUrl));
+}
+else
+{
+    builder.Services.AddDbContext<GymDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
+
 builder.Services.AddDbContext<GymDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
