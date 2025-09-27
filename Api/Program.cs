@@ -23,15 +23,17 @@ if (isRender)
 
     var databaseUri = new Uri(databaseUrl);
     var userInfo = databaseUri.UserInfo.Split(':');
+    var port = databaseUri.Port == -1 ? 5432 : databaseUri.Port;
+
     connectionString = new NpgsqlConnectionStringBuilder
     {
         Host = databaseUri.Host,
-        Port = databaseUri.Port,
+        Port = port,
         Database = databaseUri.LocalPath.TrimStart('/'),
         Username = userInfo[0],
         Password = userInfo[1],
-        SslMode = SslMode.Require,
-        TrustServerCertificate = true
+        SslMode = SslMode.Require
+        // TrustServerCertificate = true // opcional, pero no necesario en Render
     }.ToString();
 }
 else
