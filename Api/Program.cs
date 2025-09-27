@@ -14,20 +14,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
+// Si estás en Render, usa la variable DATABASE_URL
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (!string.IsNullOrEmpty(databaseUrl))
 {
-    builder.Services.AddDbContext<GymDbContext>(options =>
-        options.UseNpgsql(databaseUrl));
-}
-else
-{
-    builder.Services.AddDbContext<GymDbContext>(options =>
-        options.UseSqlite(connectionString));
+    // Parsear DATABASE_URL de Render (es un string de conexión estándar)
+    connectionString = databaseUrl;
 }
 
-builder.Services.AddDbContext<GymDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<GymDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
 builder.Services.AddScoped<Application.Abstractions.IProfesorRepository, ProfesorRepository>();
