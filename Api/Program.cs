@@ -3,6 +3,7 @@ using Application.Services;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Detectar si estamos en Render
 var isRender = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER"));
 
 string connectionString;
@@ -20,9 +20,19 @@ if (isRender)
     var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
     if (string.IsNullOrEmpty(databaseUrl))
         throw new InvalidOperationException("DATABASE_URL is required in Render environment.");
-    connectionString = databaseUrl;
-    builder.Services.AddDbContext<GymDbContext>(options =>
-        options.UseNpgsql(connectionString));
+
+    var databaseUri = new Uri(databaseUrl);
+    var userInfo = databaseUri.UserInfo.Split(':');
+    connectionString = new NpgsqlConnectionStringBuilder
+    {
+        Host = databaseUri.Host,
+        Port = databaseUri.Port,
+        Database = databaseUri.LocalPath.TrimStart('/'),
+        Username = userInfo[0],
+        Password = userInfo[1],
+        SslMode = SslMode.Require,
+        TrustServerCertificate = true
+    }.ToString();
 }
 else
 {
@@ -30,6 +40,10 @@ else
     builder.Services.AddDbContext<GymDbContext>(options =>
         options.UseSqlite(connectionString));
 }
+
+// Registro de DbContext
+builder.Services.AddDbContext<GymDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // Registro de servicios y repositorios
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
