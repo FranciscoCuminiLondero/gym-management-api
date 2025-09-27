@@ -2,6 +2,7 @@ services:
   - type: web
     name: gym-management-api
     env: dotnet
+    region: frankfurt
     buildCommand: "dotnet publish GymManagement.Presentation -c Release -o published"
     startCommand: "./published/GymManagement.Presentation"
     envVars:
