@@ -15,15 +15,18 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<GymDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
-builder.Services.AddScoped<Application.Abstractions.IProfesorRepository, ProfesorRepository>();
+builder.Services.AddScoped<IProfesorRepository, ProfesorRepository>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IClaseService, ClaseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
+
 
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
-builder.Services.AddScoped<Application.Abstractions.IProfesorRepository, ProfesorRepository>();
+builder.Services.AddScoped<IProfesorRepository, ProfesorRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<IClaseRepository, ClaseRepository>();    
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 
 var app = builder.Build();
 

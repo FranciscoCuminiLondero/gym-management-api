@@ -10,14 +10,17 @@ namespace Application.Services
         private readonly IReservaRepository _reservaRepository;
         private readonly IAlumnoRepository _alumnoRepository;
         private readonly IClaseRepository _claseRepository;
+        private readonly INotificacionService _notificacionService;
         public ReservaService(
             IReservaRepository reservaRepository,
             IAlumnoRepository alumnoRepository,
-            IClaseRepository claseRepository)
+            IClaseRepository claseRepository,
+            INotificacionService notificacionService)
         {
             _reservaRepository = reservaRepository;
             _alumnoRepository = alumnoRepository;
             _claseRepository = claseRepository;
+            _notificacionService = notificacionService;
         }
 
         public bool Create(CreateReservaRequest request)
@@ -31,7 +34,6 @@ namespace Application.Services
             if (!_alumnoRepository.HasMembresiaActiva(request.AlumnoId))
                 return false;
 
-            // 3. Validar que la clase exista, esté activa y no haya pasado
             var clase = _claseRepository.GetById(request.ClaseId);
             if (clase == null || !clase.Activa || clase.Fecha < DateOnly.FromDateTime(DateTime.Today))
                 return false;
@@ -51,7 +53,17 @@ namespace Application.Services
                 Activo = true
             };
 
-            return _reservaRepository.Create(nuevaReserva);
+            if (!_reservaRepository.Create(nuevaReserva))
+                return false;
+
+            _notificacionService.NotificarReservaConfirmada(request.AlumnoId, request.ClaseId);
+
+            if (clase != null)
+            {
+                _notificacionService.NotificarNuevaReservaAlProfesor(clase.ProfesorId, request.AlumnoId, request.ClaseId);
+            }
+
+            return true;
         }
 
         public List<ReservaResponse> GetByAlumnoId(int alumnoId)
