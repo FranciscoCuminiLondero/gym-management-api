@@ -53,15 +53,18 @@ builder.Services.AddScoped<IProfesorService, ProfesorService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IClaseService, ClaseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
+
 
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
 builder.Services.AddScoped<IProfesorRepository, ProfesorRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
-builder.Services.AddScoped<IClaseRepository, ClaseRepository>();
+builder.Services.AddScoped<IClaseRepository, ClaseRepository>();    
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 
 var app = builder.Build();
 
-// Aplicar migraciones en producción
+// Aplicar migraciones en producciÃ³n
 if (!app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -74,7 +77,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Gym Management API V1");
-    c.RoutePrefix = string.Empty; // Para que Swagger quede en la raíz "/"
+    c.RoutePrefix = string.Empty; // Para que Swagger quede en la raÃ­z "/"
 });
 
 
