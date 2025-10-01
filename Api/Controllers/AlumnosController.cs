@@ -12,7 +12,7 @@ namespace Presentation.Controllers
     public class AlumnosController : ControllerBase
     {
         private readonly IAlumnoService _alumnoService;
-        
+
         public AlumnosController(IAlumnoService alumnoService)
         {
             _alumnoService = alumnoService;
