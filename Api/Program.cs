@@ -69,16 +69,14 @@ if (!app.Environment.IsDevelopment())
     context.Database.Migrate();
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("ENABLE_SWAGGER") == "true")
+// Siempre habilitar Swagger
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Gym Management API v1");
-        options.RoutePrefix = string.Empty;
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Gym Management API V1");
+    c.RoutePrefix = string.Empty; // Para que Swagger quede en la raíz "/"
+});
+
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
