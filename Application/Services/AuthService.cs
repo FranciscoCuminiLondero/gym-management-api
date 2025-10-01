@@ -11,18 +11,29 @@ namespace Application.Services
     {
         private readonly IAlumnoRepository _alumnoRepository;
         private readonly IProfesorRepository _profesorRepository;
+        private readonly IMembresiaService _membresiaService;
+        private readonly IPlanRepository _planRepository;
         private readonly string _jwtKey = "tu_clave_secreta_muy_larga_y_segura_32_caracteres";
 
-        public AuthService(IAlumnoRepository alumnoRepository, Abstractions.IProfesorRepository profesorRepository)
+        public AuthService(
+            IAlumnoRepository alumnoRepository, 
+            IProfesorRepository profesorRepository, 
+            IMembresiaService membresiaService, 
+            IPlanRepository planRepository)
         {
             _alumnoRepository = alumnoRepository;
             _profesorRepository = profesorRepository;
+            _membresiaService = membresiaService;
+            _planRepository = planRepository;
         }
 
         public AuthResponse? Register(RegisterRequest request)
         {
             if (request.Role == "Alumno")
             {
+                if (!_planRepository.IsActivo(request.PlanId))
+                    return null;
+
                 if (_alumnoRepository.GetByCriterial(a => a.Email == request.Email).Any())
                     return null;
 
@@ -40,6 +51,15 @@ namespace Application.Services
                 };
 
                 if (!_alumnoRepository.Create(alumno)) return null;
+
+                var membresiaRequest = new CreateMembresiaRequest
+                {
+                    AlumnoId = alumno.Id,
+                    PlanId = request.PlanId
+                };
+
+                if (!_membresiaService.AsociarMembresia(membresiaRequest))
+                    return null;
 
                 return new AuthResponse
                 {

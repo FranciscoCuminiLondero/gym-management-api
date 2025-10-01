@@ -9,6 +9,7 @@
         public string Telefono { get; set; }
         public DateOnly FechaNacimiento { get; set; }
         public string Password { get; set; }
-        public string Role { get; set; } = "Alumno"; 
+        public string Role { get; set; } = "Alumno";
+        public int PlanId { get; set; }
     }
 }
