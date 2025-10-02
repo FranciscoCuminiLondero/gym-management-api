@@ -54,13 +54,18 @@ builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IClaseService, ClaseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
-
+builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<IPagoService, PagoService>();
+builder.Services.AddScoped<IMembresiaService, MembresiaService>();
 
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
 builder.Services.AddScoped<IProfesorRepository, ProfesorRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<IClaseRepository, ClaseRepository>();    
 builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
+builder.Services.AddScoped<IPlanRepository, PlanRepository>();
+builder.Services.AddScoped<IPagoRepository, PagoRepository>();
+builder.Services.AddScoped<IMembresiaRepository, MembresiaRepository>();
 
 var app = builder.Build();
 
