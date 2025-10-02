@@ -66,7 +66,6 @@ namespace Application.Services
                     Id = alumno.Id,
                     Nombre = alumno.Nombre,
                     Role = alumno.Role,
-                    Token = GenerateToken(alumno.Email, alumno.Role, alumno.Id)
                 };
             }
             else if (request.Role == "Profesor")
@@ -93,7 +92,6 @@ namespace Application.Services
                     Id = profesor.Id,
                     Nombre = profesor.Nombre,
                     Role = profesor.Role,
-                    Token = GenerateToken(profesor.Email, profesor.Role, profesor.Id)
                 };
             }
 

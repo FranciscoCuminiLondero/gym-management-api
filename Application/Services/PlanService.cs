@@ -1,5 +1,7 @@
 ﻿using Application.Abstractions;
+using Contract.Requests;
 using Contract.Responses;
+using Domain.Entities;
 
 namespace Application.Services
 {
@@ -23,6 +25,22 @@ namespace Application.Services
                 Precio = p.Precio,
                 DuracionDias = p.DuracionDias
             }).ToList();
+        }
+        public bool Create(CreatePlanRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Nombre) || request.Precio <= 0 || request.DuracionDias <= 0)
+                return false;
+
+            var plan = new Plan
+            {
+                Nombre = request.Nombre,
+                Descripcion = request.Descripcion,
+                Precio = request.Precio,
+                DuracionDias = request.DuracionDias,
+                Activo = true
+            };
+
+            return _planRepository.Create(plan);
         }
     }
 }
