@@ -2,10 +2,34 @@ using Application.Abstractions;
 using Application.Services;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AlumnoPolicy", policy => policy.RequireRole("Alumno"));
+    options.AddPolicy("ProfesorPolicy", policy => policy.RequireRole("Profesor"));
+});
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -69,7 +93,7 @@ builder.Services.AddScoped<IMembresiaRepository, MembresiaRepository>();
 
 var app = builder.Build();
 
-// Aplicar migraciones en producción
+// Aplicar migraciones en producci�n
 if (!app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -82,11 +106,12 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Gym Management API V1");
-    c.RoutePrefix = string.Empty; // Para que Swagger quede en la raíz "/"
+    c.RoutePrefix = string.Empty; // Para que Swagger quede en la ra�z "/"
 });
 
 
 app.UseHttpsRedirection();
+
 app.UseAuthorization();
 app.MapControllers();
 
