@@ -1,4 +1,5 @@
-﻿using Application.Services;
+﻿using Application.Abstractions;
+using Application.Services;
 using Contract.Requests;
 using Contract.Responses;
 using Domain.Entities;
@@ -12,10 +13,16 @@ namespace Presentation.Controllers
     public class AlumnosController : ControllerBase
     {
         private readonly IAlumnoService _alumnoService;
-        
-        public AlumnosController(IAlumnoService alumnoService)
+        private readonly IMembresiaRepository _membresiaRepository;
+        private readonly IReservaRepository _reservaRepository;
+        public AlumnosController(
+            IAlumnoService alumnoService, 
+            IMembresiaRepository membresiaRepository,
+            IReservaRepository reservaRepository)
         {
             _alumnoService = alumnoService;
+            _membresiaRepository = membresiaRepository;
+            _reservaRepository = reservaRepository;
         }
 
         [HttpGet]
@@ -31,6 +38,40 @@ namespace Presentation.Controllers
             var alumno = _alumnoService.GetById(id);
             if (alumno == null) return NotFound();
             return Ok(alumno);
+        }
+
+        [HttpGet("perfil")]
+        public ActionResult<AlumnoPerfilResponse> GetPerfil(int alumnoId) // id luego viene del token
+        {
+            var alumno = _alumnoService.GetById(alumnoId);
+            if(alumno == null) return NotFound();
+
+            var membresiaActiva = _membresiaRepository.GetByCriterial(m=> m.AlumnoId == alumnoId && m.Activa).FirstOrDefault();
+
+            var reservas = _reservaRepository.GetByAlumnoId(alumnoId);
+
+            var perfil = new AlumnoPerfilResponse
+            {
+                Alumno = alumno,
+                MembresiaActiva = membresiaActiva == null ? null : new MembresiaResponse
+                {
+                    Id = membresiaActiva.Id,
+                    PlanId = membresiaActiva.PlanId,
+                    FechaInicio = membresiaActiva.FechaInicio,
+                    FechaFin = membresiaActiva.FechaFin,
+                    Activa = membresiaActiva.Activa
+                },
+                Reservas = reservas.Select(r => new ReservaResponse
+                {
+                    Id = r.Id,
+                    ClaseId = r.ClaseId,
+                    FechaReserva = r.FechaReserva,
+                    Activo = r.Activo
+                }).ToList()
+            };
+
+            return Ok(perfil);
+
         }
     }
 }
