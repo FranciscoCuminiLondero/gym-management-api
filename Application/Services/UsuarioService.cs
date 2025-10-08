@@ -51,5 +51,10 @@ namespace Application.Services
         {
             return _usuarioRepository.GetAllDtos();
         }
+
+        public (List<Contract.Responses.UsuarioResponse> Items, int Total) GetPagedDtos(int page, int pageSize, string? q = null)
+        {
+            return _usuarioRepository.GetPagedDtos(page, pageSize, q);
+        }
     }
 }

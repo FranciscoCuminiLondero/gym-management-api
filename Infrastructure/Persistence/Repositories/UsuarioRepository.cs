@@ -99,6 +99,47 @@ namespace Infrastructure.Persistence.Repositories
             return alumnos.Concat(profesores).ToList();
         }
 
+        public (List<Contract.Responses.UsuarioResponse> Items, int Total) GetPagedDtos(int page, int pageSize, string? q = null)
+        {
+            var alumnoQuery = _context.Alumnos.AsQueryable();
+            var profesorQuery = _context.Profesores.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var qLc = q.ToLower();
+                alumnoQuery = alumnoQuery.Where(a => (a.Nombre ?? "").ToLower().Contains(qLc) || (a.Email ?? "").ToLower().Contains(qLc));
+                profesorQuery = profesorQuery.Where(p => (p.Nombre ?? "").ToLower().Contains(qLc) || (p.Email ?? "").ToLower().Contains(qLc));
+            }
+
+            var alumnosProjected = alumnoQuery.Select(a => new Contract.Responses.UsuarioResponse
+            {
+                Id = a.Id,
+                Nombre = a.Nombre,
+                Email = a.Email,
+                Role = a.Role
+            });
+
+            var profesoresProjected = profesorQuery.Select(p => new Contract.Responses.UsuarioResponse
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Email = p.Email,
+                Role = p.Role
+            });
+
+            var union = alumnosProjected.Concat(profesoresProjected);
+
+            var total = union.Count();
+
+            var items = union
+                .OrderBy(u => u.Nombre)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return (items, total);
+        }
+
         public Domain.Entities.Usuario? GetWithPasswordByEmail(string email)
         {
             var alumno = _context.Alumnos.FirstOrDefault(a => a.Email == email);

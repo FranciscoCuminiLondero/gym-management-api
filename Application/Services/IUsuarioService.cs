@@ -14,5 +14,6 @@ namespace Application.Services
         Contract.Responses.UsuarioResponse? GetDtoByEmail(string email);
         Contract.Responses.UsuarioResponse? GetDtoById(int id);
         List<Contract.Responses.UsuarioResponse> GetAllDtos();
+        (List<Contract.Responses.UsuarioResponse> Items, int Total) GetPagedDtos(int page, int pageSize, string? q = null);
     }
 }
