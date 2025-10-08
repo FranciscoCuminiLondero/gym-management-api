@@ -67,21 +67,28 @@ namespace Infrastructure.Persistence.Configurations
             // Configuración de Membresía
             modelBuilder.Entity<Membresia>()
                 .HasOne(m => m.Plan)
-                .WithMany()
+                .WithMany(p => p.Membresias)
                 .HasForeignKey(m => m.PlanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Configuración de Clase
             modelBuilder.Entity<Clase>()
                 .HasOne(c => c.Sala)
-                .WithMany()
+                .WithMany(s => s.Clases)
                 .HasForeignKey(c => c.SalaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Clase>()
                 .HasOne(c => c.Sucursal)
-                .WithMany()
+                .WithMany(s => s.Clases)
                 .HasForeignKey(c => c.SucursalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuración de Sala-Sucursal
+            modelBuilder.Entity<Sala>()
+                .HasOne(s => s.Sucursal)
+                .WithMany(su => su.Salas)
+                .HasForeignKey(s => s.SucursalId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Configuración de Reserva

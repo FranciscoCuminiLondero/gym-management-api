@@ -59,7 +59,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Alumnos");
+                    b.ToTable("Alumnos", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Auditoria", b =>
@@ -85,7 +85,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Auditorias");
+                    b.ToTable("Auditorias", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Clase", b =>
@@ -134,7 +134,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SucursalId");
 
-                    b.ToTable("Clases");
+                    b.ToTable("Clases", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Membresia", b =>
@@ -164,7 +164,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("PlanId");
 
-                    b.ToTable("Membresias");
+                    b.ToTable("Membresias", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Notificacion", b =>
@@ -193,7 +193,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notificaciones");
+                    b.ToTable("Notificaciones", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Pago", b =>
@@ -225,7 +225,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("MembresiaId");
 
-                    b.ToTable("Pagos");
+                    b.ToTable("Pagos", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Plan", b =>
@@ -253,7 +253,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Planes");
+                    b.ToTable("Planes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Profesor", b =>
@@ -298,7 +298,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Profesores");
+                    b.ToTable("Profesores", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Reserva", b =>
@@ -325,7 +325,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ClaseId");
 
-                    b.ToTable("Reservas");
+                    b.ToTable("Reservas", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Sala", b =>
@@ -352,7 +352,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SucursalId");
 
-                    b.ToTable("Salas");
+                    b.ToTable("Salas", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Sucursal", b =>
@@ -382,7 +382,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sucursales");
+                    b.ToTable("Sucursales", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Clase", b =>

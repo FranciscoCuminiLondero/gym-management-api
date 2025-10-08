@@ -4,10 +4,10 @@
     {
         public int AlumnoId { get; set; }
         public int ClaseId { get; set; }
-        public DateOnly FechaReserva {  get; set; }
-        public bool Activo {  get; set; }
+        public DateOnly FechaReserva { get; set; }
+        public bool Activo { get; set; } = true;
 
-        public Alumno Alumno {  get; set; }
-        public Clase Clase { get; set; }
+        public Alumno Alumno { get; set; } = null!;
+        public Clase Clase { get; set; } = null!;
     }
 }

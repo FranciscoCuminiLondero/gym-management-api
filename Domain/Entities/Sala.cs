@@ -2,11 +2,12 @@
 {
     public class Sala : BaseEntity
     {
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
         public int Capacidad { get; set; }
-        public string Descripcion { get; set; }
+        public string Descripcion { get; set; } = string.Empty;
+        public int SucursalId { get; set; }
 
-        public Sucursal Sucursal { get; set; }
-        public List<Clase> Clases { get; set; }
+        public Sucursal Sucursal { get; set; } = null!;
+        public List<Clase> Clases { get; set; } = new();
     }
 }
