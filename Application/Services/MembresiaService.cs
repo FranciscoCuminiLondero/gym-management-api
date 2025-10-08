@@ -24,7 +24,8 @@ namespace Application.Services
         }
         public bool AsociarMembresia(CreateMembresiaRequest request)
         {
-            if (!_alumnoRepository.IsActivo(request.AlumnoId))
+            var alumno = _alumnoRepository.GetById(request.AlumnoId);
+            if (alumno == null || !alumno.Activo)
                 return false;
 
             var plan = _planRepository.GetById(request.PlanId);

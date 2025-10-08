@@ -28,10 +28,11 @@ namespace Application.Services
             if (request == null || request.AlumnoId <= 0 || request.ClaseId <= 0)
                 return false;
 
-            if (!_alumnoRepository.IsActivo(request.AlumnoId))
+            var alumno = _alumnoRepository.GetById(request.AlumnoId);
+            if (alumno == null || !alumno.Activo)
                 return false;
 
-            if (!_alumnoRepository.HasMembresiaActiva(request.AlumnoId))
+            if (!alumno.TieneMembresiaActiva())
                 return false;
 
             var clase = _claseRepository.GetById(request.ClaseId);
