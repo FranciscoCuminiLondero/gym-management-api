@@ -1,7 +1,7 @@
 # Sistema de Gestión de Gimnasios
 
 > **Proyecto Final – Programación IV**  
-> Una API RESTful para la gestión de gimnasios, desarrollada con **Clean Architecture**, **ASP.NET Core**, **C#** y **SQLite**.
+> Una API RESTful para la gestión de gimnasios con **jerarquía de usuarios**, **autenticación JWT** y **Clean Architecture**. Desarrollada con **ASP.NET Core 8**, **C#** y **SQLite**.
 ---
 
 ## 🖋️ Minuta
@@ -52,71 +52,197 @@ Este proyecto sigue el patrón de **Clean Architecture**, separando responsabili
 
 ``` bash
 GymManagement (solución)
-├── GymManagement.Presentation → Web API (controladores, configuración, DI)
-├── GymManagement.Application → Casos de uso, servicios, mapeo, interfaces de repositorio
-├── GymManagement.Domain → Entidades del negocio y lógica central
-├── GymManagement.Contract → DTOs (requests/responses) y contratos públicos
-└── GymManagement.Infrastructure → Implementaciones (EF Core, repositorios, servicios externos)
+├── Api (Presentation) → Web API (controladores, JWT, CORS, Swagger)
+├── Application → Servicios de negocio, interfaces de repositorio
+├── Domain → Entidades con jerarquía TPH (Usuario → Alumno/Profesor)
+├── Contract → DTOs (requests/responses) y contratos públicos
+└── Infrastructure → EF Core, repositorios concretos, migraciones
 ```
 
 ## 🛠️ Tecnologías
 
 - **Lenguaje**: C# 12
-- **Framework**: .NET 8
-- **Base de datos**: SQLite (para desarrollo)
-- **ORM**: Entity Framework Core
-- **Arquitectura**: Clean Architecture
+- **Framework**: .NET 8 (ASP.NET Core Web API)
+- **Base de datos**: SQLite (desarrollo) con Entity Framework Core
+- **Arquitectura**: Clean Architecture + Repository Pattern
+- **Autenticación**: JWT Bearer Tokens
+- **Documentación**: Swagger/OpenAPI con autenticación
+- **ORM**: Entity Framework Core con Table Per Hierarchy (TPH)
+
+## 🔐 Autenticación y Autorización
+
+### Sistema de Roles
+- **SuperAdmin**: Acceso total al sistema
+- **Administrador**: Gestión general del gimnasio  
+- **Profesor**: Gestión de sus clases y alumnos
+- **Alumno**: Acceso a su perfil y reservas
+
+### Endpoints de Autenticación
+- `POST /api/auth/login` - Inicio de sesión con email/password
+- `POST /api/auth/register` - Registro de nuevos usuarios
+
+### Políticas de Autorización
+- **AdminPolicy**: Requiere rol SuperAdmin o Administrador
+- **ProfesorPolicy**: Requiere rol Profesor
+- **AlumnoPolicy**: Requiere rol Alumno
+- **AlumnoOrProfesorPolicy**: Requiere rol Alumno o Profesor
 
 ---
 
 ## 📁 Estructura del Dominio
 
-Las entidades principales del sistema son:
+### Jerarquía de Usuarios (TPH - Table Per Hierarchy)
+```csharp
+Usuario (abstracta)
+├── Alumno (con Plan y Membresías)
+└── Profesor (con Clases asignadas)
+```
 
-- `Alumno`
-- `Profesor`
-- `Sucursal`
-- `Sala`
-- `Clase`
-- `Reserva`
-- `Membresia`
-- `Pago`
-- `Notificacion`
-- `Auditoria`
+### Entidades Principales
+- **`Usuario`** - Clase base abstracta con datos comunes
+- **`Alumno`** - Hereda de Usuario, tiene Plan y Membresías  
+- **`Profesor`** - Hereda de Usuario, puede impartir Clases
+- **`Rol`** - Define permisos (SuperAdmin, Administrador, Profesor, Alumno)
+- **`Plan`** - Tipos de membresía disponibles
+- **`Membresia`** - Relación Alumno-Plan con fechas y pagos
+- **`Sucursal`** - Ubicaciones del gimnasio
+- **`Sala`** - Espacios dentro de las sucursales
+- **`Clase`** - Actividades impartidas por profesores
+- **`Reserva`** - Reservas de alumnos para clases específicas
+- **`Pago`** - Historial de pagos de membresías
+- **`Notificacion`** - Sistema de mensajería interna
+- **`Auditoria`** - Log de acciones del sistema
+
+---
+
+## 🚀 API Endpoints Implementados
+
+### Autenticación
+- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/register` - Registrar nuevo usuario
+
+### Gestión de Alumnos 
+- `GET /api/alumnos` - Listar alumnos (SuperAdmin)
+- `GET /api/alumnos/{id}` - Obtener alumno específico (SuperAdmin/Alumno propio)
+- `PUT /api/alumnos/{id}` - Actualizar alumno (SuperAdmin/Alumno propio)  
+- `DELETE /api/alumnos/{id}` - Eliminar alumno (SuperAdmin)
+
+### Gestión de Profesores
+- `GET /api/profesores` - Listar profesores (SuperAdmin)
+- `GET /api/profesores/{id}` - Obtener profesor (SuperAdmin/Profesor propio)
+- `PUT /api/profesores/{id}` - Actualizar profesor (SuperAdmin/Profesor propio)
+- `DELETE /api/profesores/{id}` - Eliminar profesor (SuperAdmin)
+
+### Gestión de Clases
+- `GET /api/clases` - Listar clases disponibles
+- `GET /api/clases/{id}` - Obtener clase específica
+- `POST /api/clases` - Crear nueva clase (Profesor/Admin)
+- `PUT /api/clases/{id}` - Actualizar clase (Profesor/Admin)
+- `DELETE /api/clases/{id}` - Eliminar clase (Admin)
+
+### Gestión de Planes
+- `GET /api/planes` - Listar planes disponibles
+- `GET /api/planes/{id}` - Obtener plan específico
+- `POST /api/planes` - Crear nuevo plan (Admin)
+- `PUT /api/planes/{id}` - Actualizar plan (Admin)
+- `DELETE /api/planes/{id}` - Eliminar plan (Admin)
+
+### Gestión de Reservas
+- `GET /api/reservas` - Listar reservas (filtradas por usuario)
+- `GET /api/reservas/{id}` - Obtener reserva específica
+- `POST /api/reservas` - Crear nueva reserva (Alumno)
+- `DELETE /api/reservas/{id}` - Cancelar reserva
+
+## 📋 Contratos (DTOs)
+
+### Requests
+- `LoginRequest` - Email y contraseña
+- `RegisterRequest` - Datos completos para registro
+- `CreateAlumnoRequest` - Datos específicos de alumno
+- `CreateProfesorRequest` - Datos específicos de profesor
+- `CreateReservaRequest` - Datos para nueva reserva
+- `CreatePlanRequest` - Datos para nuevo plan
+- `CreateMembresiaRequest` - Datos para nueva membresía
+
+### Responses  
+- `AuthResponse` - Token JWT y datos del usuario
+- `AlumnoResponse` - Datos públicos del alumno
+- `ProfesorResponse` - Datos públicos del profesor
+- `ClaseResponse` - Información de la clase
+- `PlanResponse` - Detalles del plan
+- `ReservaResponse` - Confirmación de reserva
+- `MembresiaResponse` - Estado de membresía
 
 ---
 
-## Entidades y Contratos
+## ⚠️ Estado Actual del Proyecto
 
-El sistema sigue una arquitectura limpia con separación clara de capas:
+### ✅ Implementado
+- [x] Jerarquía de usuarios con TPH (Usuario → Alumno/Profesor)
+- [x] Autenticación JWT completa con roles
+- [x] Repositorios concretos con lógica específica
+- [x] Servicios de negocio configurados
+- [x] Controladores con autorización por roles
+- [x] Migraciones de Entity Framework
+- [x] Swagger con autenticación JWT
+- [x] CORS configurado para frontend
+- [x] Middleware global de manejo de excepciones
 
-- **Domain**: Contiene las entidades del negocio (`Alumno`, `Profesor`, `Clase`, `Membresia`, etc.).
-- **Contract**: Define los DTOs (Data Transfer Objects) que la API expone:
-  - **Alumno**:  
-    - `CreateAlumnoRequest`: datos necesarios para registrar un nuevo alumno.  
-    - `AlumnoResponse`: información devuelta tras la creación.
+### 🔄 En Desarrollo
+- [ ] **USUARIOS HARDCODEADOS**: No hay SuperAdmin por defecto
+- [ ] Aplicación de migraciones a la base de datos
+- [ ] Servicios de Membresía y Pago completos
+- [ ] Sistema de notificaciones
+- [ ] Auditoría de acciones
+- [ ] Frontend para pruebas
 
-  - **Profesor**:  
-    - `CreateProfesorRequest`: datos básicos para dar de alta un profesor.  
-    - `ProfesorResponse`: perfil público del profesor.
+### 🚨 Funcionalidades Faltantes
+- [ ] Seeding de datos iniciales (SuperAdmin por defecto)
+- [ ] Validaciones de negocio avanzadas
+- [ ] Sistema de caché
+- [ ] Logging estructurado
+- [ ] Tests unitarios e integración
+- [ ] Documentación de API completa
+- [ ] Deployment y CI/CD
 
-  - **Reserva**:  
-    - `CreateReservaRequest`: vincula un alumno a una clase específica.  
-    - `ReservaResponse`: confirma la reserva con estado y fecha.
+## ⚠️ Importante - No hay SuperAdmin hardcodeado
 
-## Endpoints disponibles
+**El sistema NO incluye usuarios por defecto.** Necesitas:
 
-- **`GET /api/alumnos`**: obtiene la lista de todos los alumnos registrados.
-- **`GET /api/alumnos/{id}`**: obtiene los datos de un alumno por su ID.
-- **`POST /api/alumnos`**: registra un nuevo alumno. Requiere nombre, apellido, DNI, email, teléfono y fecha de nacimiento.
+1. **Crear el primer SuperAdmin manualmente** en la base de datos, o
+2. **Implementar un endpoint de inicialización**, o  
+3. **Usar el endpoint de registro** y luego cambiar el rol en la BD
 
-El sistema valida automáticamente que el DNI no esté duplicado y que los campos obligatorios no estén vacíos.
-
----
+Para crear un SuperAdmin temporal, puedes:
+```sql
+-- Después de aplicar migraciones
+INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, RolId, Discriminator)
+VALUES ('Admin', 'Sistema', 'admin@gym.com', 'hash_password', 1, 'Alumno');
+```
 
 ## ▶️ Cómo ejecutar
 
+### Prerrequisitos
+- .NET 8 SDK
+- SQLite (incluido en .NET)
+
+### Pasos
 ```bash
-git clone https://github.com/tu-usuario/gym-management-api.git
+# Clonar repositorio
+git clone https://github.com/FranciscoCuminiLondero/gym-management-api.git
 cd gym-management-api
-dotnet run --project GymManagement.Presentation
+
+# Restaurar dependencias
+dotnet restore
+
+# Aplicar migraciones (crear BD)
+dotnet ef database update --project Infrastructure --startup-project Api
+
+# Ejecutar aplicación
+dotnet run --project Api
+```
+
+### Acceso
+- **API**: http://localhost:5262
+- **Swagger**: http://localhost:5262/swagger  
+- **HTTPS**: https://localhost:7253 (requiere certificado dev)
