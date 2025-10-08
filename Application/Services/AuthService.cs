@@ -12,19 +12,22 @@ namespace Application.Services
         private readonly IAlumnoRepository _alumnoRepository;
         private readonly IProfesorRepository _profesorRepository;
         private readonly IMembresiaService _membresiaService;
-        private readonly IPlanRepository _planRepository;
+        private readonly IPlanRepository _plan_repository;
+        private readonly IUsuarioService _usuarioService;
         private readonly string _jwtKey = "tu_clave_secreta_muy_larga_y_segura_32_caracteres";
 
         public AuthService(
-            IAlumnoRepository alumnoRepository, 
-            IProfesorRepository profesorRepository, 
-            IMembresiaService membresiaService, 
-            IPlanRepository planRepository)
+            IAlumnoRepository alumnoRepository,
+            IProfesorRepository profesorRepository,
+            IMembresiaService membresiaService,
+            IPlanRepository planRepository,
+            IUsuarioService usuarioService)
         {
             _alumnoRepository = alumnoRepository;
-            _profesorRepository = profesorRepository;
+            _profesor_repository = profesorRepository;
             _membresiaService = membresiaService;
-            _planRepository = planRepository;
+            _plan_repository = planRepository;
+            _usuarioService = usuarioService;
         }
 
         public AuthResponse? Register(RegisterRequest request)
@@ -34,7 +37,7 @@ namespace Application.Services
                 if (!_planRepository.IsActivo(request.PlanId))
                     return null;
 
-                if (_alumnoRepository.GetByCriterial(a => a.Email == request.Email).Any())
+                if (_usuarioService.ExistsByEmail(request.Email))
                     return null;
 
                 var alumno = new Alumno
@@ -70,7 +73,7 @@ namespace Application.Services
             }
             else if (request.Role == "Profesor")
             {
-                if (_profesorRepository.GetByCriterial(p => p.Email == request.Email).Any())
+                if (_usuarioService.ExistsByEmail(request.Email))
                     return null;
 
                 var profesor = new Profesor
@@ -100,28 +103,15 @@ namespace Application.Services
 
         public AuthResponse? Login(LoginRequest request)
         {
-            var alumno = _alumnoRepository.GetByCriterial(a => a.Email == request.Email).FirstOrDefault();
-            if (alumno != null && VerifyPassword(request.Password, alumno.PasswordHash))
+            var usuario = _usuarioService.GetByEmail(request.Email);
+            if (usuario != null && VerifyPassword(request.Password, usuario.PasswordHash))
             {
                 return new AuthResponse
                 {
-                    Id = alumno.Id,
-                    Nombre = alumno.Nombre,
-                    Role = alumno.Role,
-                    Token = GenerateToken(alumno.Email, alumno.Role, alumno.Id)
-                };
-            }
-
-            // Buscar en Profesores
-            var profesor = _profesorRepository.GetByCriterial(p => p.Email == request.Email).FirstOrDefault();
-            if (profesor != null && VerifyPassword(request.Password, profesor.PasswordHash))
-            {
-                return new AuthResponse
-                {
-                    Id = profesor.Id,
-                    Nombre = profesor.Nombre,
-                    Role = profesor.Role,
-                    Token = GenerateToken(profesor.Email, profesor.Role, profesor.Id)
+                    Id = usuario.Id,
+                    Nombre = usuario.Nombre,
+                    Role = usuario.Role,
+                    Token = GenerateToken(usuario.Email, usuario.Role, usuario.Id)
                 };
             }
 
