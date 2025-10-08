@@ -1,10 +1,21 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Contract.Requests;
 using Contract.Responses;
 using Domain.Entities;
 
 namespace Application.Services
 {
+    public interface IProfesorService
+    {
+        ProfesorResponse? CreateProfesor(CreateProfesorRequest request);
+        ProfesorResponse? GetProfesorById(int id);
+        List<ProfesorResponse> GetProfesoresActivos();
+        bool UpdateProfesor(int id, CreateProfesorRequest request);
+        bool DeleteProfesor(int id);
+        ProfesorResponse? GetPerfilCompleto(int id);
+        List<ProfesorResponse> GetProfesoresPorEspecialidad(string especialidad);
+    }
+
     public class ProfesorService : IProfesorService
     {
         private readonly IProfesorRepository _profesorRepository;
@@ -14,26 +25,84 @@ namespace Application.Services
             _profesorRepository = profesorRepository;
         }
 
-        public List<ProfesorResponse> GetAll()
+        public ProfesorResponse? CreateProfesor(CreateProfesorRequest request)
         {
-            var profesores = _profesorRepository.GetAll();
-            return profesores.Select(p => new ProfesorResponse
+            if (_profesorRepository.ExistsByEmail(request.Email))
+                return null;
+
+            var profesor = new Profesor
             {
-                Id = p.Id,
-                Nombre = p.Nombre,
-                Apellido = p.Apellido,
-                Dni = p.Dni,
-                Email = p.Email,
-                Telefono = p.Telefono,
-                Activo = p.Activo
-            }).ToList();
+                Nombre = request.Nombre,
+                Apellido = request.Apellido,
+                Dni = request.Dni,
+                Email = request.Email,
+                Telefono = request.Telefono,
+                FechaNacimiento = request.FechaNacimiento,
+                PasswordHash = HashPassword(request.Password),
+                Especialidad = request.Especialidad,
+                FechaContratacion = request.FechaContratacion ?? DateTime.UtcNow,
+                Activo = true,
+                FechaCreacion = DateTime.UtcNow
+            };
+
+            if (!_profesorRepository.Create(profesor))
+                return null;
+
+            return MapToResponse(profesor);
         }
 
-        public ProfesorResponse? GetById(int id)
+        public ProfesorResponse? GetPerfilCompleto(int id)
+        {
+            var profesor = _profesorRepository.GetProfesorCompleto(id);
+            return profesor != null ? MapToCompleteResponse(profesor) : null;
+        }
+
+        public ProfesorResponse? GetProfesorById(int id)
         {
             var profesor = _profesorRepository.GetById(id);
-            if (profesor == null) return null;
+            return profesor != null ? MapToResponse(profesor) : null;
+        }
 
+        public List<ProfesorResponse> GetProfesoresActivos()
+        {
+            var profesores = _profesorRepository.GetAll().Where(p => p.Activo).ToList();
+            return profesores.Select(MapToResponse).ToList();
+        }
+
+        public List<ProfesorResponse> GetProfesoresPorEspecialidad(string especialidad)
+        {
+            var profesores = _profesorRepository.GetProfesoresPorEspecialidad(especialidad);
+            return profesores.Select(MapToResponse).ToList();
+        }
+
+        public bool UpdateProfesor(int id, CreateProfesorRequest request)
+        {
+            var profesor = _profesorRepository.GetById(id);
+            if (profesor == null) return false;
+
+            profesor.Nombre = request.Nombre;
+            profesor.Apellido = request.Apellido;
+            profesor.Dni = request.Dni;
+            profesor.Email = request.Email;
+            profesor.Telefono = request.Telefono;
+            profesor.FechaNacimiento = request.FechaNacimiento;
+            profesor.Especialidad = request.Especialidad;
+            profesor.FechaContratacion = request.FechaContratacion;
+
+            return _profesorRepository.Update(profesor);
+        }
+
+        public bool DeleteProfesor(int id)
+        {
+            var profesor = _profesorRepository.GetById(id);
+            if (profesor == null) return false;
+
+            profesor.Activo = false;
+            return _profesorRepository.Update(profesor);
+        }
+
+        private ProfesorResponse MapToResponse(Profesor profesor)
+        {
             return new ProfesorResponse
             {
                 Id = profesor.Id,
@@ -42,36 +111,28 @@ namespace Application.Services
                 Dni = profesor.Dni,
                 Email = profesor.Email,
                 Telefono = profesor.Telefono,
-                Activo = profesor.Activo
+                FechaNacimiento = profesor.FechaNacimiento,
+                Activo = profesor.Activo,
+                NombreCompleto = profesor.NombreCompleto,
+                TipoUsuario = profesor.GetTipoUsuario(),
+                Especialidad = profesor.Especialidad,
+                FechaContratacion = profesor.FechaContratacion,
+                TotalClasesAsignadas = profesor.Clases.Count
             };
         }
 
-        public bool Create(CreateProfesorRequest request)
+        private ProfesorResponse MapToCompleteResponse(Profesor profesor)
         {
-            if (request == null ||
-                string.IsNullOrWhiteSpace(request.Nombre) ||
-                string.IsNullOrWhiteSpace(request.Apellido) ||
-                string.IsNullOrWhiteSpace(request.Email))
-            {
-                return false;
-            }
+            var response = MapToResponse(profesor);
+            // Agregar mapeo de clases activas si es necesario
+            return response;
+        }
 
-            if (_profesorRepository.ExistsByEmail(request.Email))
-            {
-                return false;
-            }
-
-            var nuevoProfesor = new Profesor
-            {
-                Nombre = request.Nombre,
-                Apellido = request.Apellido,
-                Dni = request.Dni,
-                Email = request.Email,
-                Telefono = request.Telefono,
-                Activo = true
-            };
-
-            return _profesorRepository.Create(nuevoProfesor);
+        private string HashPassword(string password)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(hashedBytes);
         }
     }
 }

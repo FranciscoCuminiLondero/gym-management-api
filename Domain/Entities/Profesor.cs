@@ -1,16 +1,27 @@
 ﻿namespace Domain.Entities
 {
-    public class Profesor : BaseEntity
+    public class Profesor : Usuario
     {
-        public string Nombre { get; set; }
-        public string Apellido { get; set; }
-        public string PasswordHash { get; set; }
-        public string Role { get; set; } = "Profesor";
-        public string Dni {  get; set; }
-        public string Email { get; set; }
-        public string Telefono { get; set; }
-        public DateOnly FechaNacimiento { get; set; }
-        public bool Activo { get; set; }
-        public List<Clase> Clases { get; set; }
+        public List<Clase> Clases { get; set; } = new();
+        public string? Especialidad { get; set; }
+        public DateTime? FechaContratacion { get; set; }
+
+        public Profesor()
+        {
+            RolId = (int)TipoRol.Profesor;
+        }
+
+        public override string GetTipoUsuario() => "Profesor";
+
+        // Método para obtener clases activas
+        public List<Clase> GetClasesActivas()
+        {
+            var fechaActual = DateOnly.FromDateTime(DateTime.Now);
+            var horaActual = TimeOnly.FromDateTime(DateTime.Now);
+
+            return Clases.Where(c => c.Activa &&
+                (c.Fecha > fechaActual ||
+                (c.Fecha == fechaActual && c.HoraInicio > horaActual))).ToList();
+        }
     }
 }

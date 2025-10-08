@@ -1,14 +1,10 @@
 ﻿namespace Contract.Responses
 {
-    public class ProfesorResponse
+    public class ProfesorResponse : BaseUsuarioResponse
     {
-        public int Id { get; set; }
-        public string Nombre { get; set; }
-        public string Apellido { get; set; } 
-        public string Dni { get; set; }
-        public string Email { get; set; } 
-        public string Telefono { get; set; }
-        public DateOnly FechaNacimiento { get; set; }
-        public bool Activo { get; set; }
+        public string? Especialidad { get; set; }
+        public DateTime? FechaContratacion { get; set; }
+        public List<ClaseResponse> ClasesActivas { get; set; } = new();
+        public int TotalClasesAsignadas { get; set; }
     }
 }

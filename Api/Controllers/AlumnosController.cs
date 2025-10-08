@@ -1,77 +1,101 @@
-﻿using Application.Abstractions;
 using Application.Services;
 using Contract.Requests;
-using Contract.Responses;
-using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AlumnosController : ControllerBase
     {
         private readonly IAlumnoService _alumnoService;
-        private readonly IMembresiaRepository _membresiaRepository;
-        private readonly IReservaRepository _reservaRepository;
-        public AlumnosController(
-            IAlumnoService alumnoService, 
-            IMembresiaRepository membresiaRepository,
-            IReservaRepository reservaRepository)
+
+        public AlumnosController(IAlumnoService alumnoService)
         {
             _alumnoService = alumnoService;
-            _membresiaRepository = membresiaRepository;
-            _reservaRepository = reservaRepository;
         }
 
-        [HttpGet]
-        public ActionResult<List<AlumnoResponse>> GetAll()
+        [HttpPost]
+        [Authorize(Roles = "SuperAdmin")]
+        public IActionResult CreateAlumno([FromBody] CreateAlumnoRequest request)
         {
-            var alumnos = _alumnoService.GetAll();
-            return Ok(alumnos);
+            var response = _alumnoService.CreateAlumno(request);
+            if (response == null)
+                return BadRequest("No se pudo crear el alumno");
+
+            return CreatedAtAction(nameof(GetAlumno), new { id = response.Id }, response);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<AlumnoResponse> GetById(int id)
+        public IActionResult GetAlumno(int id)
         {
-            var alumno = _alumnoService.GetById(id);
-            if (alumno == null) return NotFound();
-            return Ok(alumno);
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            // Solo SuperAdmin puede ver cualquier alumno, los alumnos solo pueden ver su propio perfil
+            if (userRole != "SuperAdmin" && userRole != "Alumno")
+                return Forbid();
+
+            if (userRole == "Alumno" && userId != id)
+                return Forbid();
+
+            var response = _alumnoService.GetPerfilCompleto(id);
+            if (response == null)
+                return NotFound();
+
+            return Ok(response);
         }
 
-        [HttpGet("perfil")]
-        public ActionResult<AlumnoPerfilResponse> GetPerfil(int alumnoId) // id luego viene del token
+        [HttpGet]
+        [Authorize(Roles = "SuperAdmin,Profesor")]
+        public IActionResult GetAlumnos()
         {
-            var alumno = _alumnoService.GetById(alumnoId);
-            if(alumno == null) return NotFound();
+            var alumnos = _alumnoService.GetAlumnosActivos();
+            return Ok(alumnos);
+        }
 
-            var membresiaActiva = _membresiaRepository.GetByCriterial(m=> m.AlumnoId == alumnoId && m.Activa).FirstOrDefault();
+        [HttpPut("{id}")]
+        public IActionResult UpdateAlumno(int id, [FromBody] CreateAlumnoRequest request)
+        {
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            var reservas = _reservaRepository.GetByAlumnoId(alumnoId);
+            // Solo SuperAdmin puede actualizar cualquier alumno, los alumnos solo pueden actualizar su propio perfil
+            if (userRole != "SuperAdmin" && (userRole != "Alumno" || userId != id))
+                return Forbid();
 
-            var perfil = new AlumnoPerfilResponse
-            {
-                Alumno = alumno,
-                MembresiaActiva = membresiaActiva == null ? null : new MembresiaResponse
-                {
-                    Id = membresiaActiva.Id,
-                    PlanId = membresiaActiva.PlanId,
-                    FechaInicio = membresiaActiva.FechaInicio,
-                    FechaFin = membresiaActiva.FechaFin,
-                    Activa = membresiaActiva.Activa
-                },
-                Reservas = reservas.Select(r => new ReservaResponse
-                {
-                    Id = r.Id,
-                    ClaseId = r.ClaseId,
-                    FechaReserva = r.FechaReserva,
-                    Activo = r.Activo
-                }).ToList()
-            };
+            var success = _alumnoService.UpdateAlumno(id, request);
+            if (!success)
+                return NotFound();
 
-            return Ok(perfil);
+            return NoContent();
+        }
 
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "SuperAdmin")]
+        public IActionResult DeleteAlumno(int id)
+        {
+            var success = _alumnoService.DeleteAlumno(id);
+            if (!success)
+                return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpGet("me")]
+        [Authorize(Roles = "Alumno")]
+        public IActionResult GetMiPerfil()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var response = _alumnoService.GetPerfilCompleto(userId);
+
+            if (response == null)
+                return NotFound();
+
+            return Ok(response);
         }
     }
 }

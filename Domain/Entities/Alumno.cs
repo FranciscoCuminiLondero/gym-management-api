@@ -1,16 +1,23 @@
 ﻿namespace Domain.Entities
 {
-    public class Alumno : BaseEntity
+    public class Alumno : Usuario
     {
-        public string Nombre { get; set; }
-        public string PasswordHash { get; set; }
-        public string Role { get; set; } = "Alumno";
-        public string Apellido { get; set; }
-        public string Dni {  get; set; }
-        public string Email { get; set; }
-        public string Telefono { get; set; }
-        public DateOnly FechaNacimiento { get; set; }
-        public bool Activo {  get; set; }
-        public List<Membresia> Membresias { get; set; }
+        public int PlanId { get; set; }
+        public Plan Plan { get; set; } = null!; // Navigation property
+        public List<Membresia> Membresias { get; set; } = new();
+        public List<Reserva> Reservas { get; set; } = new();
+
+        public Alumno()
+        {
+            RolId = (int)TipoRol.Alumno;
+        }
+
+        public override string GetTipoUsuario() => "Alumno";
+
+        // Método para verificar si tiene membresía activa
+        public bool TieneMembresiaActiva()
+        {
+            return Membresias.Any(m => m.FechaFin > DateOnly.FromDateTime(DateTime.Now) && m.Activa);
+        }
     }
 }

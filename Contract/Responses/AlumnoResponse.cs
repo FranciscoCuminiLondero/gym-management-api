@@ -1,14 +1,11 @@
 ﻿namespace Contract.Responses
 {
-    public class AlumnoResponse
+    public class AlumnoResponse : BaseUsuarioResponse
     {
-        public int Id { get; set; }
-        public string Nombre { get; set; }
-        public string Apellido { get; set; }
-        public string Dni {  get; set; }
-        public string Email { get; set; }
-        public string Telefono { get; set; }
-        public DateOnly FechaNacimiento { get; set; }
-        public bool Activo { get; set; }
+        public int PlanId { get; set; }
+        public string PlanNombre { get; set; } = string.Empty;
+        public bool TieneMembresiaActiva { get; set; }
+        public List<MembresiaResponse> Membresias { get; set; } = new();
+        public List<ReservaResponse> ReservasActivas { get; set; } = new();
     }
 }

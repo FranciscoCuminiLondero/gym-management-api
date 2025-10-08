@@ -1,13 +1,12 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 
 namespace Application.Abstractions
 {
     public interface IAlumnoRepository : IBaseRepository<Alumno>
     {
-        bool ExistsByDni(string dni);
+        Alumno? GetByEmail(string email);
         bool ExistsByEmail(string email);
-        Alumno? GetByIdWithMembresias(int id);
-        bool IsActivo(int id);
-        bool HasMembresiaActiva(int alumnoId);
+        List<Alumno> GetAlumnosConMembresiaActiva();
+        Alumno? GetAlumnoCompleto(int id);
     }
 }

@@ -1,39 +1,104 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Contract.Requests;
 using Contract.Responses;
 using Domain.Entities;
 
 namespace Application.Services
 {
+    public interface IAlumnoService
+    {
+        AlumnoResponse? CreateAlumno(CreateAlumnoRequest request);
+        AlumnoResponse? GetAlumnoById(int id);
+        List<AlumnoResponse> GetAlumnosActivos();
+        bool UpdateAlumno(int id, CreateAlumnoRequest request);
+        bool DeleteAlumno(int id);
+        AlumnoResponse? GetPerfilCompleto(int id);
+    }
+
     public class AlumnoService : IAlumnoService
     {
         private readonly IAlumnoRepository _alumnoRepository;
-        public AlumnoService(IAlumnoRepository alumnoRepository)
+        private readonly IPlanRepository _planRepository;
+
+        public AlumnoService(IAlumnoRepository alumnoRepository, IPlanRepository planRepository)
         {
             _alumnoRepository = alumnoRepository;
+            _planRepository = planRepository;
         }
 
-        public List<AlumnoResponse> GetAll()
+        public AlumnoResponse? CreateAlumno(CreateAlumnoRequest request)
         {
-            var alumnos = _alumnoRepository.GetAll();
-            return alumnos.Select(a => new AlumnoResponse
+            if (_alumnoRepository.ExistsByEmail(request.Email))
+                return null;
+
+            if (!_planRepository.IsActivo(request.PlanId))
+                return null;
+
+            var alumno = new Alumno
             {
-                Id = a.Id,
-                Nombre = a.Nombre,
-                Apellido = a.Apellido,
-                Dni = a.Dni,
-                Email = a.Email,
-                Telefono = a.Telefono,
-                FechaNacimiento = a.FechaNacimiento,
-                Activo = a.Activo
-            }).ToList();
+                Nombre = request.Nombre,
+                Apellido = request.Apellido,
+                Dni = request.Dni,
+                Email = request.Email,
+                Telefono = request.Telefono,
+                FechaNacimiento = request.FechaNacimiento,
+                PasswordHash = HashPassword(request.Password),
+                PlanId = request.PlanId,
+                Activo = true,
+                FechaCreacion = DateTime.UtcNow
+            };
+
+            if (!_alumnoRepository.Create(alumno))
+                return null;
+
+            return MapToResponse(alumno);
         }
 
-        public AlumnoResponse? GetById(int id)
+        public AlumnoResponse? GetPerfilCompleto(int id)
+        {
+            var alumno = _alumnoRepository.GetAlumnoCompleto(id);
+            return alumno != null ? MapToCompleteResponse(alumno) : null;
+        }
+
+        public AlumnoResponse? GetAlumnoById(int id)
         {
             var alumno = _alumnoRepository.GetById(id);
-            if (alumno == null) return null;
+            return alumno != null ? MapToResponse(alumno) : null;
+        }
 
+        public List<AlumnoResponse> GetAlumnosActivos()
+        {
+            var alumnos = _alumnoRepository.GetAll().Where(a => a.Activo).ToList();
+            return alumnos.Select(MapToResponse).ToList();
+        }
+
+        public bool UpdateAlumno(int id, CreateAlumnoRequest request)
+        {
+            var alumno = _alumnoRepository.GetById(id);
+            if (alumno == null) return false;
+
+            alumno.Nombre = request.Nombre;
+            alumno.Apellido = request.Apellido;
+            alumno.Dni = request.Dni;
+            alumno.Email = request.Email;
+            alumno.Telefono = request.Telefono;
+            alumno.FechaNacimiento = request.FechaNacimiento;
+            alumno.PlanId = request.PlanId;
+
+            return _alumnoRepository.Update(alumno);
+        }
+
+        public bool DeleteAlumno(int id)
+        {
+            var alumno = _alumnoRepository.GetById(id);
+            if (alumno == null) return false;
+
+            alumno.Activo = false;
+            return _alumnoRepository.Update(alumno);
+        }
+
+        private AlumnoResponse MapToResponse(Alumno alumno)
+        {
             return new AlumnoResponse
             {
                 Id = alumno.Id,
@@ -43,38 +108,27 @@ namespace Application.Services
                 Email = alumno.Email,
                 Telefono = alumno.Telefono,
                 FechaNacimiento = alumno.FechaNacimiento,
-                Activo = alumno.Activo
+                Activo = alumno.Activo,
+                NombreCompleto = alumno.NombreCompleto,
+                TipoUsuario = alumno.GetTipoUsuario(),
+                PlanId = alumno.PlanId,
+                TieneMembresiaActiva = alumno.TieneMembresiaActiva()
             };
         }
 
-        public bool Create(CreateAlumnoRequest request)
+        private AlumnoResponse MapToCompleteResponse(Alumno alumno)
         {
-            if (request == null ||
-                string.IsNullOrWhiteSpace(request.Nombre) ||
-                string.IsNullOrWhiteSpace(request.Apellido) ||
-                string.IsNullOrWhiteSpace(request.Dni) ||
-                string.IsNullOrWhiteSpace(request.Email))
-            {
-                return false;
-            }
+            var response = MapToResponse(alumno);
+            response.PlanNombre = alumno.Plan?.Nombre ?? "";
+            // Agregar mapeo de membresías y reservas si es necesario
+            return response;
+        }
 
-            if (_alumnoRepository.ExistsByDni(request.Dni))
-            {
-                return false;
-            }
-
-            var nuevoAlumno = new Alumno
-            {
-                Nombre = request.Nombre,
-                Apellido = request.Apellido,
-                Dni = request.Dni,
-                Email = request.Email,
-                Telefono = request.Telefono,
-                FechaNacimiento = request.FechaNacimiento,
-                Activo = true
-            };
-
-            return _alumnoRepository.Create(nuevoAlumno);
+        private string HashPassword(string password)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(hashedBytes);
         }
     }
 }

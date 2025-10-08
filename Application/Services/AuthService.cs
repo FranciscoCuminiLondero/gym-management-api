@@ -16,9 +16,9 @@ namespace Application.Services
         private readonly string _jwtKey = "tu_clave_secreta_muy_larga_y_segura_32_caracteres";
 
         public AuthService(
-            IAlumnoRepository alumnoRepository, 
-            IProfesorRepository profesorRepository, 
-            IMembresiaService membresiaService, 
+            IAlumnoRepository alumnoRepository,
+            IProfesorRepository profesorRepository,
+            IMembresiaService membresiaService,
             IPlanRepository planRepository)
         {
             _alumnoRepository = alumnoRepository;
@@ -29,103 +29,120 @@ namespace Application.Services
 
         public AuthResponse? Register(RegisterRequest request)
         {
-            if (request.Role == "Alumno")
+            // Verificar si el email ya existe en cualquiera de los repositorios
+            bool emailExists = request.Role switch
             {
-                if (!_planRepository.IsActivo(request.PlanId))
-                    return null;
+                "Alumno" => _alumnoRepository.ExistsByEmail(request.Email),
+                "Profesor" => _profesorRepository.ExistsByEmail(request.Email),
+                _ => throw new ArgumentException("Rol no válido")
+            };
 
-                if (_alumnoRepository.GetByCriterial(a => a.Email == request.Email).Any())
-                    return null;
+            if (emailExists) return null;
 
-                var alumno = new Alumno
-                {
-                    Nombre = request.Nombre,
-                    Apellido = request.Apellido,
-                    Dni = request.Dni,
-                    Email = request.Email,
-                    Telefono = request.Telefono,
-                    FechaNacimiento = request.FechaNacimiento,
-                    Activo = true,
-                    PasswordHash = HashPassword(request.Password),
-                    Role = "Alumno"
-                };
-
-                if (!_alumnoRepository.Create(alumno)) return null;
-
-                var membresiaRequest = new CreateMembresiaRequest
-                {
-                    AlumnoId = alumno.Id,
-                    PlanId = request.PlanId
-                };
-
-                if (!_membresiaService.AsociarMembresia(membresiaRequest))
-                    return null;
-
-                return new AuthResponse
-                {
-                    Id = alumno.Id,
-                    Nombre = alumno.Nombre,
-                    Role = alumno.Role,
-                };
-            }
-            else if (request.Role == "Profesor")
+            return request.Role switch
             {
-                if (_profesorRepository.GetByCriterial(p => p.Email == request.Email).Any())
-                    return null;
+                "Alumno" => RegisterAlumno(request),
+                "Profesor" => RegisterProfesor(request),
+                _ => throw new ArgumentException("Rol no válido")
+            };
+        }
 
-                var profesor = new Profesor
-                {
-                    Nombre = request.Nombre,
-                    Apellido = request.Apellido,
-                    Dni = request.Dni,
-                    Email = request.Email,
-                    Telefono = request.Telefono,
-                    Activo = true,
-                    PasswordHash = HashPassword(request.Password),
-                    Role = "Profesor"
-                };
+        private AuthResponse? RegisterAlumno(RegisterRequest request)
+        {
+            if (!request.PlanId.HasValue || !_planRepository.IsActivo(request.PlanId.Value))
+                return null;
 
-                if (!_profesorRepository.Create(profesor)) return null;
+            var alumno = new Alumno
+            {
+                Nombre = request.Nombre,
+                Apellido = request.Apellido,
+                Dni = request.Dni,
+                Email = request.Email,
+                Telefono = request.Telefono,
+                FechaNacimiento = request.FechaNacimiento,
+                PasswordHash = HashPassword(request.Password),
+                PlanId = request.PlanId.Value,
+                Activo = true,
+                FechaCreacion = DateTime.UtcNow
+            };
 
-                return new AuthResponse
-                {
-                    Id = profesor.Id,
-                    Nombre = profesor.Nombre,
-                    Role = profesor.Role,
-                };
-            }
+            if (!_alumnoRepository.Create(alumno))
+                return null;
 
-            return null;
+            // Asociar membresía
+            var membresiaRequest = new CreateMembresiaRequest
+            {
+                AlumnoId = alumno.Id,
+                PlanId = request.PlanId.Value
+            };
+
+            if (!_membresiaService.AsociarMembresia(membresiaRequest))
+                return null;
+
+            return new AuthResponse
+            {
+                Id = alumno.Id,
+                Nombre = alumno.Nombre,
+                Role = "Alumno"
+            };
+        }
+
+        private AuthResponse? RegisterProfesor(RegisterRequest request)
+        {
+            var profesor = new Profesor
+            {
+                Nombre = request.Nombre,
+                Apellido = request.Apellido,
+                Dni = request.Dni,
+                Email = request.Email,
+                Telefono = request.Telefono,
+                FechaNacimiento = request.FechaNacimiento,
+                PasswordHash = HashPassword(request.Password),
+                Especialidad = request.Especialidad,
+                FechaContratacion = DateTime.UtcNow,
+                Activo = true,
+                FechaCreacion = DateTime.UtcNow
+            };
+
+            if (!_profesorRepository.Create(profesor))
+                return null;
+
+            return new AuthResponse
+            {
+                Id = profesor.Id,
+                Nombre = profesor.Nombre,
+                Role = "Profesor"
+            };
         }
 
         public AuthResponse? Login(LoginRequest request)
         {
-            var alumno = _alumnoRepository.GetByCriterial(a => a.Email == request.Email).FirstOrDefault();
+            // Buscar en ambos repositorios
+            var alumno = _alumnoRepository.GetByEmail(request.Email);
             if (alumno != null && VerifyPassword(request.Password, alumno.PasswordHash))
             {
                 return new AuthResponse
                 {
                     Id = alumno.Id,
                     Nombre = alumno.Nombre,
-                    Role = alumno.Role,
-                    Token = GenerateToken(alumno.Email, alumno.Role, alumno.Id)
+                    Role = "Alumno",
+                    Token = GenerateToken(alumno.Email, "Alumno", alumno.Id)
                 };
             }
 
-            // Buscar en Profesores
-            var profesor = _profesorRepository.GetByCriterial(p => p.Email == request.Email).FirstOrDefault();
+            var profesor = _profesorRepository.GetByEmail(request.Email);
             if (profesor != null && VerifyPassword(request.Password, profesor.PasswordHash))
             {
                 return new AuthResponse
                 {
                     Id = profesor.Id,
                     Nombre = profesor.Nombre,
-                    Role = profesor.Role,
-                    Token = GenerateToken(profesor.Email, profesor.Role, profesor.Id)
+                    Role = "Profesor",
+                    Token = GenerateToken(profesor.Email, "Profesor", profesor.Id)
                 };
             }
 
-            return null;
+            return null; // Usuario no encontrado o contraseña incorrecta
         }
 
         private string HashPassword(string password)
@@ -143,7 +160,8 @@ namespace Application.Services
 
         private string GenerateToken(string email, string role, int id)
         {
-            // "token simulado"
+            // ⚠️ En tu AuthController, este método se reemplazará por JWT real
+            // Por ahora, lo dejamos para que el servicio no dependa de IConfiguration
             return $"fake-jwt-token-for-{email}-{role}-{id}";
         }
     }

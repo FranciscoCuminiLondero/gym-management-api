@@ -1,11 +1,8 @@
 ﻿namespace Contract.Requests
 {
-    public class CreateProfesorRequest
+    public class CreateProfesorRequest : BaseUsuarioRequest
     {
-        public string Nombre { get; set; }
-        public string Apellido { get; set; } 
-        public string Dni { get; set; }
-        public string Email { get; set; }
-        public string Telefono { get; set; }
+        public string? Especialidad { get; set; }
+        public DateTime? FechaContratacion { get; set; }
     }
 }
