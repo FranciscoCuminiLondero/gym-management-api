@@ -9,16 +9,19 @@ namespace Application.Services
     {
         private readonly IReservaRepository _reservaRepository;
         private readonly IAlumnoRepository _alumnoRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly IClaseRepository _claseRepository;
         private readonly INotificacionService _notificacionService;
         public ReservaService(
             IReservaRepository reservaRepository,
             IAlumnoRepository alumnoRepository,
+            IUsuarioRepository usuarioRepository,
             IClaseRepository claseRepository,
             INotificacionService notificacionService)
         {
             _reservaRepository = reservaRepository;
             _alumnoRepository = alumnoRepository;
+            _usuarioRepository = usuarioRepository;
             _claseRepository = claseRepository;
             _notificacionService = notificacionService;
         }
@@ -28,7 +31,7 @@ namespace Application.Services
             if (request == null || request.AlumnoId <= 0 || request.ClaseId <= 0)
                 return false;
 
-            if (!_alumnoRepository.IsActivo(request.AlumnoId))
+            if (!_usuarioRepository.IsActivo(request.AlumnoId))
                 return false;
 
             if (!_alumnoRepository.HasMembresiaActiva(request.AlumnoId))

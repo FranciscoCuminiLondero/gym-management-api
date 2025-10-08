@@ -83,5 +83,16 @@ namespace Infrastructure.Persistence.Repositories
 
             return null;
         }
+
+        public bool IsActivo(int id)
+        {
+            var alumno = _context.Alumnos.FirstOrDefault(a => a.Id == id);
+            if (alumno != null) return alumno.Activo;
+
+            var profesor = _context.Profesores.FirstOrDefault(p => p.Id == id);
+            if (profesor != null) return profesor.Activo;
+
+            return false;
+        }
     }
 }

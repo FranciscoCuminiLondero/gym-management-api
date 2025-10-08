@@ -7,6 +7,7 @@ namespace Application.Abstractions
         Usuario? GetByEmail(string email);
         Usuario? GetById(int id);
         bool ExistsByEmail(string email);
+        bool IsActivo(int id);
         // Response helpers
         Contract.Responses.UsuarioResponse? GetDtoByEmail(string email);
         Contract.Responses.UsuarioResponse? GetDtoById(int id);

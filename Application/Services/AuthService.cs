@@ -9,10 +9,10 @@ namespace Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IAlumnoRepository _alumnoRepository;
-        private readonly IProfesorRepository _profesorRepository;
+    private readonly IAlumnoRepository _alumnoRepository;
+    private readonly IProfesorRepository _profesorRepository;
         private readonly IMembresiaService _membresiaService;
-        private readonly IPlanRepository _plan_repository;
+    private readonly IPlanRepository _planRepository;
         private readonly IUsuarioService _usuarioService;
         private readonly string _jwtKey = "tu_clave_secreta_muy_larga_y_segura_32_caracteres";
 
@@ -24,9 +24,9 @@ namespace Application.Services
             IUsuarioService usuarioService)
         {
             _alumnoRepository = alumnoRepository;
-            _profesor_repository = profesorRepository;
+            _profesorRepository = profesorRepository;
             _membresiaService = membresiaService;
-            _plan_repository = planRepository;
+            _planRepository = planRepository;
             _usuarioService = usuarioService;
         }
 
