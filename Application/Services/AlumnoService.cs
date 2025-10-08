@@ -8,9 +8,11 @@ namespace Application.Services
     public class AlumnoService : IAlumnoService
     {
         private readonly IAlumnoRepository _alumnoRepository;
-        public AlumnoService(IAlumnoRepository alumnoRepository)
+        private readonly IUsuarioService _usuarioService;
+        public AlumnoService(IAlumnoRepository alumnoRepository, IUsuarioService usuarioService)
         {
             _alumnoRepository = alumnoRepository;
+            _usuarioService = usuarioService;
         }
 
         public List<AlumnoResponse> GetAll()
@@ -58,7 +60,7 @@ namespace Application.Services
                 return false;
             }
 
-            if (_alumnoRepository.ExistsByDni(request.Dni))
+            if (_usuarioService.ExistsByDni(request.Dni))
             {
                 return false;
             }

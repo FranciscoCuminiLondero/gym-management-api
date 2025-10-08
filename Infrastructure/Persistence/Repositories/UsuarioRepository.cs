@@ -39,6 +39,11 @@ namespace Infrastructure.Persistence.Repositories
             return _context.Alumnos.Any(a => a.Email == email) || _context.Profesores.Any(p => p.Email == email);
         }
 
+        public bool ExistsByDni(string dni)
+        {
+            return _context.Alumnos.Any(a => a.Dni == dni);
+        }
+
         public Contract.Responses.UsuarioResponse? GetDtoByEmail(string email)
         {
             var alumno = _context.Alumnos.FirstOrDefault(a => a.Email == email);

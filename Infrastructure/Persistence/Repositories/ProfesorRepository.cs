@@ -10,11 +10,6 @@ namespace Infrastructure.Persistence.Repositories
         { 
             _context = context;
         }
-        public bool ExistsByEmail(string email)
-        {
-            return _context.Profesores.Any(p => p.Email == email);
-        }
-
         public Profesor? GetByEmail(string email)
         {
             return _context.Profesores.FirstOrDefault(p => p.Email == email);

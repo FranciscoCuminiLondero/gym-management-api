@@ -27,6 +27,11 @@ namespace Application.Services
             return _usuarioRepository.ExistsByEmail(email);
         }
 
+        public bool ExistsByDni(string dni)
+        {
+            return _usuarioRepository.ExistsByDni(dni);
+        }
+
         public Usuario? GetWithPasswordByEmail(string email)
         {
             return _usuarioRepository.GetWithPasswordByEmail(email);

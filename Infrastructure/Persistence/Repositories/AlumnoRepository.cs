@@ -16,11 +16,6 @@ namespace Infrastructure.Persistence.Repositories
             return _context.Alumnos.Any(a => a.Dni == dni);
         }
 
-        public bool ExistsByEmail(string email)
-        {
-            return _context.Alumnos.Any(a => a.Email == email);
-        }
-
 
 
         public bool IsActivo(int alumnoId)

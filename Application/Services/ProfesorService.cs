@@ -8,10 +8,12 @@ namespace Application.Services
     public class ProfesorService : IProfesorService
     {
         private readonly IProfesorRepository _profesorRepository;
+        private readonly IUsuarioService _usuarioService;
 
-        public ProfesorService(IProfesorRepository profesorRepository)
+        public ProfesorService(IProfesorRepository profesorRepository, IUsuarioService usuarioService)
         {
             _profesorRepository = profesorRepository;
+            _usuarioService = usuarioService;
         }
 
         public List<ProfesorResponse> GetAll()
@@ -56,7 +58,7 @@ namespace Application.Services
                 return false;
             }
 
-            if (_profesorRepository.ExistsByEmail(request.Email))
+            if (_usuarioService.ExistsByEmail(request.Email))
             {
                 return false;
             }

@@ -7,6 +7,7 @@ namespace Application.Services
         Usuario? GetByEmail(string email);
         Usuario? GetById(int id);
         bool ExistsByEmail(string email);
+        bool ExistsByDni(string dni);
         // Devuelve la entidad completa (incluye PasswordHash) para autenticación
         Usuario? GetWithPasswordByEmail(string email);
     }
