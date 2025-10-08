@@ -38,5 +38,50 @@ namespace Infrastructure.Persistence.Repositories
         {
             return _context.Alumnos.Any(a => a.Email == email) || _context.Profesores.Any(p => p.Email == email);
         }
+
+        public Contract.Responses.UsuarioResponse? GetDtoByEmail(string email)
+        {
+            var alumno = _context.Alumnos.FirstOrDefault(a => a.Email == email);
+            if (alumno != null)
+            {
+                return new Contract.Responses.UsuarioResponse { Id = alumno.Id, Nombre = alumno.Nombre, Email = alumno.Email, Role = alumno.Role };
+            }
+
+            var profesor = _context.Profesores.FirstOrDefault(p => p.Email == email);
+            if (profesor != null)
+            {
+                return new Contract.Responses.UsuarioResponse { Id = profesor.Id, Nombre = profesor.Nombre, Email = profesor.Email, Role = profesor.Role };
+            }
+
+            return null;
+        }
+
+        public Contract.Responses.UsuarioResponse? GetDtoById(int id)
+        {
+            var alumno = _context.Alumnos.FirstOrDefault(a => a.Id == id);
+            if (alumno != null)
+            {
+                return new Contract.Responses.UsuarioResponse { Id = alumno.Id, Nombre = alumno.Nombre, Email = alumno.Email, Role = alumno.Role };
+            }
+
+            var profesor = _context.Profesores.FirstOrDefault(p => p.Id == id);
+            if (profesor != null)
+            {
+                return new Contract.Responses.UsuarioResponse { Id = profesor.Id, Nombre = profesor.Nombre, Email = profesor.Email, Role = profesor.Role };
+            }
+
+            return null;
+        }
+
+        public Domain.Entities.Usuario? GetWithPasswordByEmail(string email)
+        {
+            var alumno = _context.Alumnos.FirstOrDefault(a => a.Email == email);
+            if (alumno != null) return alumno;
+
+            var profesor = _context.Profesores.FirstOrDefault(p => p.Email == email);
+            if (profesor != null) return profesor;
+
+            return null;
+        }
     }
 }

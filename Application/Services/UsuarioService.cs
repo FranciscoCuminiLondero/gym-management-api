@@ -26,5 +26,10 @@ namespace Application.Services
         {
             return _usuarioRepository.ExistsByEmail(email);
         }
+
+        public Usuario? GetWithPasswordByEmail(string email)
+        {
+            return _usuarioRepository.GetWithPasswordByEmail(email);
+        }
     }
 }

@@ -103,7 +103,7 @@ namespace Application.Services
 
         public AuthResponse? Login(LoginRequest request)
         {
-            var usuario = _usuarioService.GetByEmail(request.Email);
+            var usuario = _usuarioService.GetWithPasswordByEmail(request.Email);
             if (usuario != null && VerifyPassword(request.Password, usuario.PasswordHash))
             {
                 return new AuthResponse

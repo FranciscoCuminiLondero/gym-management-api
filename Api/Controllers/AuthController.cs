@@ -15,19 +15,16 @@ namespace Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IAlumnoRepository _alumnoRepository;
-        private readonly IProfesorRepository _profesorRepository;
+    private readonly IUsuarioRepository _usuarioRepository;
         private readonly IConfiguration _configuration;
         public AuthController(
             IAuthService authService, 
             IConfiguration configuration,
-            IProfesorRepository profesorRepository,
-            IAlumnoRepository alumnoRepository)
+            IUsuarioRepository usuarioRepository)
         {
             _authService = authService;
             _configuration = configuration;
-            _profesorRepository = profesorRepository;
-            _alumnoRepository = alumnoRepository;
+            _usuarioRepository = usuarioRepository;
         }
 
         [HttpPost("register")]
@@ -45,7 +42,7 @@ namespace Presentation.Controllers
             var authResult = _authService.Register(request);
             if (authResult == null)
             {
-                if (_alumnoRepository.ExistsByEmail(request.Email) || _profesorRepository.ExistsByEmail(request.Email))
+                if (_usuarioRepository.ExistsByEmail(request.Email))
                     return BadRequest("Ya existe una cuenta con ese email.");
 
                 return BadRequest("No se pudo crear la cuenta. Verifique los datos e intente nuevamente.");
