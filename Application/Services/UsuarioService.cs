@@ -5,40 +5,26 @@ namespace Application.Services
 {
     public class UsuarioService : IUsuarioService
     {
-        private readonly IAlumnoRepository _alumnoRepo;
-        private readonly IProfesorRepository _profesorRepo;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public UsuarioService(IAlumnoRepository alumnoRepo, IProfesorRepository profesorRepo)
+        public UsuarioService(IUsuarioRepository usuarioRepository)
         {
-            _alumnoRepo = alumnoRepo;
-            _profesorRepo = profesorRepo;
+            _usuarioRepository = usuarioRepository;
         }
 
         public Usuario? GetByEmail(string email)
         {
-            var alumno = _alumnoRepo.GetByCriterial(a => a.Email == email).FirstOrDefault();
-            if (alumno != null) return alumno;
-
-            var profesor = _profesorRepo.GetByCriterial(p => p.Email == email).FirstOrDefault();
-            if (profesor != null) return profesor;
-
-            return null;
+            return _usuarioRepository.GetByEmail(email);
         }
 
         public Usuario? GetById(int id)
         {
-            var alumno = _alumnoRepo.GetById(id);
-            if (alumno != null) return alumno;
-
-            var profesor = _profesorRepo.GetById(id);
-            if (profesor != null) return profesor;
-
-            return null;
+            return _usuarioRepository.GetById(id);
         }
 
         public bool ExistsByEmail(string email)
         {
-            return _alumnoRepo.ExistsByEmail(email) || _profesorRepo.ExistsByEmail(email);
+            return _usuarioRepository.ExistsByEmail(email);
         }
     }
 }
