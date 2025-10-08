@@ -142,11 +142,8 @@ namespace Infrastructure.Persistence.Repositories
 
         public Domain.Entities.Usuario? GetWithPasswordByEmail(string email)
         {
-            var alumno = _context.Usuarios.OfType<Alumno>().FirstOrDefault(a => a.Email == email);
-            if (alumno != null) return alumno;
-
-            var profesor = _context.Usuarios.OfType<Profesor>().FirstOrDefault(p => p.Email == email);
-            if (profesor != null) return profesor;
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email == email);
+            if (usuario != null) return usuario;
 
             return null;
         }

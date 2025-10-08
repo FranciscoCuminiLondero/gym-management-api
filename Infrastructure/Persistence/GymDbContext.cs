@@ -35,9 +35,7 @@ namespace Infrastructure.Persistence
                 .HasValue<Alumno>("Alumno")
                 .HasValue<Profesor>("Profesor");
 
-            // Seed: administrador (como Profesor) - contraseña por defecto: "admin123"
-            // Calculamos el hash con el mismo algoritmo SHA256 que usa AuthService
-            var adminPassword = "admin123";
+            var adminPassword = "Admin123!";
             using (var sha256 = System.Security.Cryptography.SHA256.Create())
             {
                 var hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(adminPassword));
