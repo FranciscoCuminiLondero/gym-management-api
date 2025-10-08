@@ -7,7 +7,7 @@
         public DateOnly FechaInicio { get; set; }
         public DateOnly FechaFin { get; set; }
         public bool Activa { get; set; } = true;
-        
+
         public Alumno Alumno { get; set; } = null!;
         public Plan Plan { get; set; } = null!;
         public List<Pago> Pagos { get; set; } = new();
