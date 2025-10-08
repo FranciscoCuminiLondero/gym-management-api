@@ -45,8 +45,9 @@ namespace Application.Services
 
             var profesorDto = _usuarioRepository.GetDtoById(profesorId);
             if (profesorDto == null) return;
-+
-            var mensaje = $"El alumno con ID {alumnoId} se ha reservado tu clase '{clase.Nombre}' el {clase.Fecha:yyyy-MM-dd}.";
+
+            var mensaje = $"El alumno reservó la clase {clase.Nombre} el {clase.Fecha:yyyy-MM-dd}";
+
             var notificacion = new Notificacion
             {
                 Destino = profesorDto.Email,
