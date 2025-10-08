@@ -1,16 +1,12 @@
 ﻿namespace Domain.Entities
 {
-    public class Alumno : BaseEntity
+    public class Alumno : Usuario
     {
-        public string Nombre { get; set; }
-        public string PasswordHash { get; set; }
-        public string Role { get; set; } = "Alumno";
-        public string Apellido { get; set; }
-        public string Dni {  get; set; }
-        public string Email { get; set; }
-        public string Telefono { get; set; }
-        public DateOnly FechaNacimiento { get; set; }
-        public bool Activo {  get; set; }
+        public Alumno()
+        {
+            Role = "Alumno";
+        }
+
         public List<Membresia> Membresias { get; set; }
     }
 }
