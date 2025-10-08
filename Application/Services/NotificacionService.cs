@@ -22,7 +22,7 @@ namespace Application.Services
         public void NotificarReservaConfirmada(int alumnoId, int claseId)
         {
             var alumnoDto = _usuarioRepository.GetDtoById(alumnoId);
-            var clase = _clase_repository.GetById(claseId);
+            var clase = _claseRepository.GetById(claseId);
 
             if (alumnoDto == null || clase == null) return;
 
