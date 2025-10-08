@@ -103,13 +103,7 @@ app.UseGlobalExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Gym Management API V1");
-        c.RoutePrefix = string.Empty; // Swagger en la raíz
-        c.EnableDeepLinking();
-        c.DisplayRequestDuration();
-    });
+    app.UseSwaggerUI();
 }
 else
 {
@@ -125,10 +119,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-// Log de inicio
-app.Logger.LogInformation("🏋️‍♂️ Gym Management API iniciada correctamente");
-app.Logger.LogInformation("📊 Swagger disponible en: {SwaggerUrl}",
-    app.Environment.IsDevelopment() ? "https://localhost:7297" : "N/A");
 
 app.Run();
