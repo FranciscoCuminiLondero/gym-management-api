@@ -9,5 +9,9 @@ namespace Application.Abstractions
         List<Profesor> GetProfesoresConClases();
         Profesor? GetProfesorCompleto(int id);
         List<Profesor> GetProfesoresPorEspecialidad(string especialidad);
+        List<Profesor> GetProfesoresActivos();
+        List<Profesor> GetProfesoresDisponibles(DateTime fecha, TimeOnly horaInicio, TimeOnly horaFin);
+        bool TieneClasesAsignadas(int profesorId);
+        int GetCantidadClasesProfesor(int profesorId, DateOnly fechaDesde, DateOnly fechaHasta);
     }
 }
