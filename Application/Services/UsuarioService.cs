@@ -36,5 +36,20 @@ namespace Application.Services
         {
             return _usuarioRepository.GetWithPasswordByEmail(email);
         }
+
+        public Contract.Responses.UsuarioResponse? GetDtoByEmail(string email)
+        {
+            return _usuarioRepository.GetDtoByEmail(email);
+        }
+
+        public Contract.Responses.UsuarioResponse? GetDtoById(int id)
+        {
+            return _usuarioRepository.GetDtoById(id);
+        }
+
+        public List<Contract.Responses.UsuarioResponse> GetAllDtos()
+        {
+            return _usuarioRepository.GetAllDtos();
+        }
     }
 }

@@ -78,6 +78,27 @@ namespace Infrastructure.Persistence.Repositories
             return null;
         }
 
+        public List<Contract.Responses.UsuarioResponse> GetAllDtos()
+        {
+            var alumnos = _context.Alumnos.Select(a => new Contract.Responses.UsuarioResponse
+            {
+                Id = a.Id,
+                Nombre = a.Nombre,
+                Email = a.Email,
+                Role = a.Role
+            });
+
+            var profesores = _context.Profesores.Select(p => new Contract.Responses.UsuarioResponse
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Email = p.Email,
+                Role = p.Role
+            });
+
+            return alumnos.Concat(profesores).ToList();
+        }
+
         public Domain.Entities.Usuario? GetWithPasswordByEmail(string email)
         {
             var alumno = _context.Alumnos.FirstOrDefault(a => a.Email == email);

@@ -10,5 +10,9 @@ namespace Application.Services
         bool ExistsByDni(string dni);
         // Devuelve la entidad completa (incluye PasswordHash) para autenticación
         Usuario? GetWithPasswordByEmail(string email);
+        // DTO helpers
+        Contract.Responses.UsuarioResponse? GetDtoByEmail(string email);
+        Contract.Responses.UsuarioResponse? GetDtoById(int id);
+        List<Contract.Responses.UsuarioResponse> GetAllDtos();
     }
 }

@@ -22,6 +22,7 @@ namespace Presentation.Controllers
             return Ok(profesores);
         }
 
+
         [HttpGet("{id}")]
         public ActionResult<ProfesorResponse> GetById(int id)
         {
@@ -32,5 +33,7 @@ namespace Presentation.Controllers
             }
             return Ok(profesor);
         }
+
+        // Usuarios endpoints moved to UsuariosController to avoid duplication
     }
 }

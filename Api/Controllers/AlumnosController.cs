@@ -32,6 +32,7 @@ namespace Presentation.Controllers
             return Ok(alumnos);
         }
 
+
         [HttpGet("{id}")]
         public ActionResult<AlumnoResponse> GetById(int id)
         {
@@ -39,6 +40,8 @@ namespace Presentation.Controllers
             if (alumno == null) return NotFound();
             return Ok(alumno);
         }
+
+        // Usuarios endpoints moved to UsuariosController to avoid duplication
 
         [HttpGet("perfil")]
         public ActionResult<AlumnoPerfilResponse> GetPerfil(int alumnoId) // id luego viene del token

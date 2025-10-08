@@ -12,6 +12,7 @@ namespace Application.Abstractions
         // Response helpers
         Contract.Responses.UsuarioResponse? GetDtoByEmail(string email);
         Contract.Responses.UsuarioResponse? GetDtoById(int id);
+    List<Contract.Responses.UsuarioResponse> GetAllDtos();
         // Devuelve la entidad completa (incluye PasswordHash) para usos de autenticación.
         Domain.Entities.Usuario? GetWithPasswordByEmail(string email);
         bool HasMembresiaActiva(int alumnoId);
