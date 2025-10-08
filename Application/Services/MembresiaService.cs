@@ -12,9 +12,9 @@ namespace Application.Services
         private readonly IPagoService _pagoService;
 
         public MembresiaService(
-            IMembresiaRepository membresiaRepository, 
-            IAlumnoRepository alumnoRepository, 
-            IPlanRepository planRepository, 
+            IMembresiaRepository membresiaRepository,
+            IAlumnoRepository alumnoRepository,
+            IPlanRepository planRepository,
             IPagoService pagoService)
         {
             _membresiaRepository = membresiaRepository;
