@@ -94,5 +94,13 @@ namespace Infrastructure.Persistence.Repositories
 
             return false;
         }
+
+        public bool HasMembresiaActiva(int alumnoId)
+        {
+            return _context.Membresias.Any(m =>
+                m.AlumnoId == alumnoId &&
+                m.Activa &&
+                m.FechaFin >= DateOnly.FromDateTime(DateTime.Today));
+        }
     }
 }

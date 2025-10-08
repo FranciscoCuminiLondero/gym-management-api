@@ -34,7 +34,7 @@ namespace Application.Services
             if (!_usuarioRepository.IsActivo(request.AlumnoId))
                 return false;
 
-            if (!_alumnoRepository.HasMembresiaActiva(request.AlumnoId))
+            if (!_usuarioRepository.HasMembresiaActiva(request.AlumnoId))
                 return false;
 
             var clase = _claseRepository.GetById(request.ClaseId);

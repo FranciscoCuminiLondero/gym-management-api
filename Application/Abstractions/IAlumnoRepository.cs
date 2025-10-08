@@ -8,6 +8,5 @@ namespace Application.Abstractions
         bool ExistsByEmail(string email);
         Alumno? GetByIdWithMembresias(int id);
         bool IsActivo(int id);
-        bool HasMembresiaActiva(int alumnoId);
     }
 }
