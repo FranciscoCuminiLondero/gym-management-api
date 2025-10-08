@@ -18,11 +18,7 @@ namespace Infrastructure.Persistence.Repositories
 
 
 
-        public bool IsActivo(int alumnoId)
-        {
-            var alumno = _context.Alumnos.FirstOrDefault(a => a.Id == alumnoId);
-            return alumno != null && alumno.Activo;
-        }
+        
 
         public Alumno? GetByIdWithMembresias(int id)
         {

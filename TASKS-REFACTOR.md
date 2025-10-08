@@ -16,13 +16,15 @@ Checklist refactor Usuario (sin migraciones)
 
 Tareas pendientes / recomendadas (a evaluar y completar):
 
-- [ ] Revisar y normalizar inyecciones y nombres de campos en `AuthService` y otros servicios (correcciones de nombres realizadas: `_profesorRepository`, `_planRepository`)
-- [ ] Decidir qué métodos deben ser exclusivos de `IAlumnoRepository` / `IProfesorRepository` y cuáles deben moverse a `IUsuarioRepository` (recomendado: ExistsByEmail, IsActivo, GetDtoById/GetDtoByEmail)
-- [ ] Pasada global para reemplazar todos los call-sites que deberían usar `IUsuarioRepository` (por ejemplo si quieres consolidar comprobación de actividad y existencia por email)
+- [ ] Revisar y normalizar inyecciones y nombres de campos en `AuthService` y otros servicios (correcciones iniciales realizadas: `_profesorRepository`, `_planRepository`; se recomienda una pasada visual final)
+- [x] Decidir qué métodos deben ser exclusivos de `IAlumnoRepository` / `IProfesorRepository` y cuáles deben moverse a `IUsuarioRepository` (recomendado: ExistsByEmail, IsActivo, GetDtoById/GetDtoByEmail) — `IsActivo` movido a `IUsuarioRepository` y firmas redundantes eliminadas
+- [x] Pasada global para reemplazar todos los call-sites que deberían usar `IUsuarioRepository` (por ejemplo si quieres consolidar comprobación de actividad y existencia por email)
 - [ ] Ejecutar `dotnet build` y corregir errores de compilación en tu entorno local (he verificado estático: no se encontraron errores en el workspace después de los cambios)
 - [ ] Generar migración EF Core localmente y revisar el script antes de aplicar (backup de la DB recomendado)
 - [ ] Revisar controladores/serialización que devuelven `AlumnoResponse` / `ProfesorResponse` y decidir si algunos endpoints deberían devolver `UsuarioResponse` en su lugar
 - [ ] Pasada de limpieza: eliminar interfaces/implementaciones que queden sin referencias (hacerlo solo cuando no existan más referencias)
+ - [ ] Añadir CI básico (GitHub Actions) que haga build en PRs y pushes
+ - [ ] Añadir archivo `Api/smoke-tests.http` con requests críticos para pruebas manuales locales
 
 Notas:
 - No borré `IAlumnoRepository`, `AlumnoRepository`, `IProfesorRepository`, `ProfesorRepository` ni migraciones existentes. Mantener esas piezas permite un refactor seguro y gradual.
@@ -43,9 +45,3 @@ dotnet ef migrations add AddUsuarioTphAndSeedAdmin -p .\Infrastructure\Infrastru
 # aplicar migración
 dotnet ef database update -p .\Infrastructure\Infrastructure.csproj -s .\Api\Presentation.csproj --context GymDbContext
 ```
-
-Si quieres, puedo:
-- mover más métodos a `IUsuarioRepository` y reemplazar usos en más servicios (por ejemplo `AuthService` creación/registro),
-- o dejar la mezcla actual (repositorios por entidad + repo usuario para operaciones transversales) y preparar una segunda pasada para eliminación segura.
-
-Fin del checklist.

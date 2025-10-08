@@ -15,11 +15,6 @@ namespace Infrastructure.Persistence.Repositories
             return _context.Profesores.FirstOrDefault(p => p.Email == email);
         }
 
-        public bool IsActivo(int profesorId)
-        {
-            var profesor = _context.Profesores.FirstOrDefault(p => p.Id == profesorId);
-            return profesor != null && profesor.Activo;
-        }
-
+        
     }
 }
