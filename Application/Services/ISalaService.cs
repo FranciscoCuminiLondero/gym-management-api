@@ -1,3 +1,4 @@
+using Contract.Requests;
 using Contract.Responses;
 
 namespace Application.Services
@@ -7,6 +8,7 @@ namespace Application.Services
         List<SalaResponse> GetAll();
         List<SalaResponse> GetBySucursalId(int sucursalId);
         SalaResponse? GetById(int id);
+        bool Update(int id, UpdateSalaRequest request);
         bool Desactivar(int id);
     }
 }

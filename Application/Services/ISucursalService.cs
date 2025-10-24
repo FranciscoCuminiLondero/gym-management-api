@@ -1,3 +1,4 @@
+using Contract.Requests;
 using Contract.Responses;
 
 namespace Application.Services
@@ -7,6 +8,7 @@ namespace Application.Services
         List<SucursalResponse> GetAll();
         List<SucursalResponse> GetActivas();
         SucursalResponse? GetById(int id);
+        bool Update(int id, UpdateSucursalRequest request);
         bool Desactivar(int id);
     }
 }
