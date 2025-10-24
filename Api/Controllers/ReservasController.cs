@@ -1,6 +1,7 @@
 ﻿using Application.Services;
 using Contract.Requests;
 using Contract.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers
@@ -17,6 +18,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult<bool> Create(CreateReservaRequest request)
         {
             if (request == null)
@@ -34,6 +36,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("alumno/{alumnoId}")]
+        [Authorize]
         public ActionResult<List<ReservaResponse>> GetByAlumnoId(int alumnoId)
         {
             var reservas = _reservaService.GetByAlumnoId(alumnoId);
@@ -41,10 +44,21 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("clase/{claseId}")]
+        [Authorize]
         public ActionResult<List<ReservaResponse>> GetByClaseId(int claseId)
         {
             var reservas = _reservaService.GetByClaseId(claseId);
             return Ok(reservas);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        public IActionResult Delete(int id)
+        {
+            var resultado = _reservaService.Delete(id);
+            if (!resultado) return NotFound("Reserva no encontrada.");
+
+            return Ok(new { message = "Reserva cancelada exitosamente." });
         }
     }
 }
