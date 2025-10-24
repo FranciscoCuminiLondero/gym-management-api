@@ -190,6 +190,7 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 |----------|--------|--------------|-------------|
 | `/api/profesores` | GET | 🌐 Público | Lista todos los profesores |
 | `/api/profesores/{id}` | GET | 🌐 Público | Ver perfil de profesor |
+| `/api/profesores/{id}/clases` | GET | 🔒 Owner/Admin | Ver clases del profesor (solo propias o admin) |
 | `/api/profesores/{id}` | PUT | 🔒 Owner/Admin | Actualizar datos del profesor |
 
 ### 🏋️ Clases
@@ -199,17 +200,17 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 | `/api/clases` | GET | 🔒 Autenticado | Todas las clases activas |
 | `/api/clases/fecha/{fecha}` | GET | 🔒 Autenticado | Clases disponibles por fecha |
 | `/api/clases/{id}` | GET | 🔒 Autenticado | Detalles de una clase |
-| `/api/clases` | POST | 🔐 Profesor/Admin | Crear nueva clase |
-| `/api/clases/{id}` | DELETE | 🔐 Profesor/Admin | Eliminar clase |
+| `/api/clases` | POST | 🔐 Profesor/Admin | Crear nueva clase (profesor solo para sí mismo) |
+| `/api/clases/{id}` | DELETE | 🔐 Profesor/Admin | Eliminar clase (profesor solo propias) |
 
 ### 📅 Reservas
 
 | Endpoint | Método | Autorización | Descripción |
 |----------|--------|--------------|-------------|
-| `/api/reservas` | POST | 🔒 Autenticado | Crear nueva reserva |
-| `/api/reservas/alumno/{alumnoId}` | GET | 🔒 Autenticado | Reservas de un alumno |
-| `/api/reservas/clase/{claseId}` | GET | 🔒 Autenticado | Reservas de una clase |
-| `/api/reservas/{id}` | DELETE | 🔒 Autenticado | Cancelar reserva |
+| `/api/reservas` | POST | 🔒 Autenticado | Crear nueva reserva (solo para sí mismo) |
+| `/api/reservas/alumno/{alumnoId}` | GET | 🔒 Owner/Admin | Reservas de un alumno (solo propias o admin) |
+| `/api/reservas/clase/{claseId}` | GET | 🔒 Autenticado | Reservas de una clase (total para usuario, detalle para admin) |
+| `/api/reservas/{id}` | DELETE | 🔒 Owner/Admin | Cancelar reserva (solo propia o admin) |
 
 ### 💳 Planes
 
@@ -330,6 +331,94 @@ Estas entidades se **eliminan físicamente** de la base de datos:
 | Plan | DELETE | Física | Admin | `/api/planes/{id}` |
 | Clase | DELETE | Física | Profesor/Admin | `/api/clases/{id}` |
 | Reserva | DELETE | Física | Autenticado | `/api/reservas/{id}` |
+
+---
+
+## 🔒 Validaciones de Seguridad y Reglas de Negocio
+
+### Validaciones de Autorización por Endpoint
+
+#### **Profesores**
+- ✅ Un profesor **solo puede ver sus propias clases** (`GET /api/profesores/{id}/clases`)
+- ✅ Un profesor **solo puede crear clases para sí mismo** (`POST /api/clases`)
+- ✅ Un profesor **solo puede eliminar sus propias clases** (`DELETE /api/clases/{id}`)
+- ❌ **Los administradores** tienen acceso total a todas las clases
+
+#### **Alumnos**
+- ✅ Un alumno **solo puede ver su propio perfil y reservas** (`GET /api/alumnos/{id}`)
+- ✅ Un alumno **solo puede crear reservas para sí mismo** (`POST /api/reservas`)
+- ✅ Un alumno **solo puede eliminar sus propias reservas** (`DELETE /api/reservas/{id}`)
+- ✅ Un alumno **solo puede actualizar sus propios datos** (`PUT /api/alumnos/{id}`)
+- ❌ **Los administradores** pueden gestionar cualquier alumno
+
+#### **Clases y Reservas**
+- ✅ **Límite de 1 reserva por alumno por día**: Un alumno no puede reservar 2 clases el mismo día
+- ✅ **Puede cancelar y re-reservar**: Si cancela, puede hacer otra reserva para ese mismo día
+- ✅ **Control de cupos**: No se permite exceder la capacidad de la clase
+- ✅ **Validación de horarios para profesores**: Un profesor no puede tener 2 clases al mismo tiempo
+- ✅ **Detección de conflictos**: El sistema valida solapamiento de horarios automáticamente
+
+#### **Privacidad en Reservas**
+- **Alumnos y Profesores** (`GET /api/reservas/clase/{claseId}`):
+  ```json
+  {
+    "total": 15  // Solo ven el número de reservas
+  }
+  ```
+
+- **Administradores** (`GET /api/reservas/clase/{claseId}`):
+  ```json
+  {
+    "total": 15,
+    "reservas": [...]  // Ven detalles completos
+  }
+  ```
+
+### Reglas de Negocio - Reservas
+
+| Regla | Descripción | Validación |
+|-------|-------------|------------|
+| **1 reserva/día** | Un alumno solo puede tener 1 reserva activa por día | ✅ Automática |
+| **Cupo máximo** | No se puede exceder la capacidad de la clase | ✅ Automática |
+| **Membresía activa** | Solo alumnos con membresía activa pueden reservar | ✅ Automática |
+| **Usuario activo** | Solo usuarios activos pueden reservar | ✅ Automática |
+| **Fecha válida** | No se pueden reservar clases pasadas | ✅ Automática |
+| **Sin duplicados** | No se puede reservar 2 veces la misma clase | ✅ Automática |
+| **Cancelación libre** | Puede cancelar y hacer otra reserva el mismo día | ✅ Permitido |
+
+### Reglas de Negocio - Clases
+
+| Regla | Descripción | Validación |
+|-------|-------------|------------|
+| **Sin conflictos horarios** | Un profesor no puede tener 2 clases simultáneas | ✅ Automática |
+| **Mismo día, diferentes horas** | Puede tener múltiples clases si no se solapan | ✅ Permitido |
+| **Validación de solapamiento** | Verifica inicio, fin y duración de clases | ✅ Automática |
+| **Profesor propietario** | Solo puede crear/eliminar sus propias clases | ✅ Automática |
+
+### Reglas de Negocio - Usuarios
+
+| Regla | Descripción | Validación |
+|-------|-------------|------------|
+| **Email único** | No pueden existir 2 usuarios con el mismo email | ✅ Automática |
+| **Creación de roles** | Solo admin puede crear Profesores/Administradores | ✅ Automática |
+| **Actualización de email** | Se valida unicidad al actualizar | ✅ Automática |
+| **Acceso a datos propios** | Solo puede ver/editar su propia información | ✅ Automática |
+
+### Matriz de Permisos Completa
+
+| Acción | Admin | Profesor | Alumno |
+|--------|-------|----------|--------|
+| **Ver todas las clases** | ✅ | ✅ | ✅ |
+| **Ver clases de un profesor** | ✅ Todas | ✅ Solo suyas | ❌ |
+| **Crear clase** | ✅ Para cualquiera | ✅ Solo para sí mismo | ❌ |
+| **Eliminar clase** | ✅ Cualquiera | ✅ Solo suyas | ❌ |
+| **Ver reservas de clase (detalle)** | ✅ Completo | ❌ Solo total | ❌ Solo total |
+| **Ver reservas de alumno** | ✅ Cualquiera | ❌ | ✅ Solo suyas |
+| **Crear reserva** | ✅ Para cualquiera | ❌ | ✅ Solo para sí mismo |
+| **Eliminar reserva** | ✅ Cualquiera | ❌ | ✅ Solo suyas |
+| **Gestionar planes** | ✅ | ❌ | ❌ |
+| **Gestionar sucursales/salas** | ✅ | ❌ | ❌ |
+| **Desactivar usuarios** | ✅ | ❌ | ❌ |
 
 ---
 
@@ -539,6 +628,113 @@ Authorization: Bearer {admin-token}
 }
 ```
 
+### Ejemplos de Validaciones de Seguridad
+
+#### ✅ Profesor crea clase para sí mismo
+```json
+POST /api/clases
+Authorization: Bearer {profesor-token-id-2}
+
+{
+  "profesorId": 2,  // ← Mismo ID del token
+  "salaId": 1,
+  "sucursalId": 1,
+  "nombre": "Yoga Matutino",
+  "descripcion": "Clase de yoga",
+  "duracionMinutos": 60,
+  "horaInicio": "08:00:00",
+  "fecha": "2025-10-25",
+  "capacidad": 20
+}
+// ✅ Resultado: 200 OK - Clase creada
+```
+
+#### ❌ Profesor intenta crear clase para otro profesor
+```json
+POST /api/clases
+Authorization: Bearer {profesor-token-id-2}
+
+{
+  "profesorId": 5,  // ← Diferente ID del token
+  "salaId": 1,
+  // ... resto de datos
+}
+// ❌ Resultado: 403 Forbidden - "No tiene permisos para crear clases para otro profesor."
+```
+
+#### ❌ Alumno intenta ver reservas de otro alumno
+```bash
+GET /api/reservas/alumno/5
+Authorization: Bearer {alumno-token-id-3}
+
+# ❌ Resultado: 403 Forbidden - "No tiene permisos para ver las reservas de otro usuario."
+```
+
+#### ❌ Alumno intenta reservar 2 clases el mismo día
+```json
+# Primera reserva (Clase del 25 Oct)
+POST /api/reservas
+{
+  "alumnoId": 3,
+  "claseId": 1  // Fecha: 2025-10-25
+}
+// ✅ Resultado: 200 OK
+
+# Segunda reserva (Otra clase del 25 Oct)
+POST /api/reservas
+{
+  "alumnoId": 3,
+  "claseId": 5  // Fecha: 2025-10-25
+}
+// ❌ Resultado: 400 Bad Request - "No se pudo crear la reserva"
+```
+
+#### ✅ Alumno cancela y re-reserva el mismo día
+```bash
+# 1. Cancelar reserva existente
+DELETE /api/reservas/1
+# ✅ Resultado: 200 OK
+
+# 2. Hacer nueva reserva para el mismo día
+POST /api/reservas
+{
+  "alumnoId": 3,
+  "claseId": 5  // Mismo día que la cancelada
+}
+# ✅ Resultado: 200 OK - Puede reservar otra clase
+```
+
+#### ✅ Ver reservas según rol (Privacidad)
+```bash
+# Como Alumno/Profesor
+GET /api/reservas/clase/1
+Authorization: Bearer {alumno-token}
+
+# Respuesta:
+{
+  "total": 15  // Solo el número
+}
+
+# Como Administrador
+GET /api/reservas/clase/1
+Authorization: Bearer {admin-token}
+
+# Respuesta:
+{
+  "total": 15,
+  "reservas": [
+    {
+      "id": 1,
+      "alumnoId": 3,
+      "claseId": 1,
+      "fechaReserva": "2025-10-24",
+      "activo": true
+    },
+    // ... más reservas
+  ]
+}
+```
+
 ---
 
 ## 🗃️ Base de Datos
@@ -593,36 +789,6 @@ El proyecto incluye documentación detallada en archivos markdown:
   - Uso del botón "Authorize"
   - Troubleshooting común
   - Ejemplos visuales paso a paso
-
----
-
-## 🔒 Seguridad
-
-### Matriz de Permisos
-
-| Usuario | Crear Alumno | Crear Profesor | Crear Clase | Ver Todos Usuarios | Ver Propio Perfil | Modificar Propio Perfil | Eliminar Entidades |
-|---------|--------------|----------------|-------------|-------------------|-------------------|------------------------|-------------------|
-| Sin autenticar | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Alumno | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ (solo propias reservas) |
-| Profesor | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ (propias clases) |
-| Admin | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ (todas) |
-
-### Tokens JWT
-
-- **Expiración**: 1 hora
-- **Algoritmo**: HS256
-- **Claims incluidos**: 
-  - `NameIdentifier`: ID del usuario
-  - `Email`: Email del usuario
-  - `Role`: Rol del usuario
-
-### Validaciones Implementadas
-
-- Email único por usuario
-- Passwords encriptados con SHA256
-- Validación de roles en endpoints sensibles
-- Validación de ownership (usuarios solo ven su propia información)
-- Verificación de permisos en operaciones críticas
 
 ---
 
