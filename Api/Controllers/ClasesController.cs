@@ -58,6 +58,14 @@ namespace Presentation.Controllers
             if (request.DuracionMinutos <= 0)
                 return BadRequest("La duración debe ser mayor a 0.");
 
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
+
+            if (!isAdmin && userIdClaim != request.ProfesorId.ToString())
+            {
+                return StatusCode(403, "No tiene permisos para crear clases para otro profesor.");
+            }
+
             var resultado = _claseService.Create(request);
             if (!resultado)
                 return BadRequest("No se pudo crear la clase. Verifique los datos.");
@@ -69,6 +77,20 @@ namespace Presentation.Controllers
         [Authorize(Roles = "Profesor,Administrador")]
         public IActionResult Delete(int id)
         {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
+
+            var profesorIdClase = _claseService.GetProfesorIdByClaseId(id);
+            if (profesorIdClase == null)
+            {
+                return NotFound("Clase no encontrada.");
+            }
+
+            if (!isAdmin && userIdClaim != profesorIdClase.ToString())
+            {
+                return StatusCode(403, "No tiene permisos para eliminar clases de otro profesor.");
+            }
+
             var resultado = _claseService.Delete(id);
             if (!resultado) return NotFound("Clase no encontrada.");
 
