@@ -41,6 +41,9 @@ namespace Application.Services
             if (clase == null || !clase.Activa || clase.Fecha < DateOnly.FromDateTime(DateTime.Today))
                 return false;
 
+            if (_reservaRepository.ExistsByAlumnoAndFecha(request.AlumnoId, clase.Fecha))
+                return false;
+
             if (_reservaRepository.ExistsByAlumnoAndClase(request.AlumnoId, request.ClaseId))
                 return false;
 
@@ -93,6 +96,12 @@ namespace Application.Services
                 FechaReserva = reserva.FechaReserva,
                 Activo = reserva.Activo
             }).ToList();
+        }
+
+        public int? GetAlumnoIdByReservaId(int reservaId)
+        {
+            var reserva = _reservaRepository.GetById(reservaId);
+            return reserva?.AlumnoId;
         }
 
         public bool Delete(int id)
