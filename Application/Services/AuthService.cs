@@ -9,10 +9,10 @@ namespace Application.Services
 {
     public class AuthService : IAuthService
     {
-    private readonly IAlumnoRepository _alumnoRepository;
-    private readonly IProfesorRepository _profesorRepository;
+        private readonly IAlumnoRepository _alumnoRepository;
+        private readonly IProfesorRepository _profesorRepository;
         private readonly IMembresiaService _membresiaService;
-    private readonly IPlanRepository _planRepository;
+        private readonly IPlanRepository _planRepository;
         private readonly IUsuarioService _usuarioService;
         private readonly string _jwtKey = "tu_clave_secreta_muy_larga_y_segura_32_caracteres";
 
@@ -133,7 +133,6 @@ namespace Application.Services
 
         private string GenerateToken(string email, string role, int id)
         {
-            // "token simulado"
             return $"fake-jwt-token-for-{email}-{role}-{id}";
         }
     }

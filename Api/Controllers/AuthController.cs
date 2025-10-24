@@ -2,6 +2,7 @@
 using Application.Services;
 using Contract.Requests;
 using Contract.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,10 +16,10 @@ namespace Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-    private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly IConfiguration _configuration;
         public AuthController(
-            IAuthService authService, 
+            IAuthService authService,
             IConfiguration configuration,
             IUsuarioRepository usuarioRepository)
         {
@@ -35,6 +36,15 @@ namespace Presentation.Controllers
 
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Email y contraseña son obligatorios.");
+
+            if (request.Role == "Profesor" || request.Role == "Administrador")
+            {
+                if (!User.Identity?.IsAuthenticated ?? true)
+                    return Unauthorized("Debe estar autenticado como administrador para crear profesores o administradores.");
+
+                if (!User.IsInRole("Administrador"))
+                    return StatusCode(403, "Solo los administradores pueden crear profesores o administradores.");
+            }
 
             if (request.PlanId <= 0 && request.Role == "Alumno")
                 return BadRequest("Debe seleccionar un plan válido.");
