@@ -8,5 +8,6 @@ namespace Application.Services
         bool Create(CreateReservaRequest request);
         List<ReservaResponse> GetByAlumnoId(int alumnoId);
         List<ReservaResponse> GetByClaseId(int claseId);
+        bool Delete(int id);
     }
 }

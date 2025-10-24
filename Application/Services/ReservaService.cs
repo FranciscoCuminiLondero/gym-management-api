@@ -94,5 +94,13 @@ namespace Application.Services
                 Activo = reserva.Activo
             }).ToList();
         }
+
+        public bool Delete(int id)
+        {
+            var reserva = _reservaRepository.GetById(id);
+            if (reserva == null) return false;
+
+            return _reservaRepository.Delete(reserva);
+        }
     }
 }
