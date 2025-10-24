@@ -19,6 +19,15 @@ namespace Application.Services
         {
             try
             {
+                if (_claseRepository.TieneConflictoHorario(
+                    request.ProfesorId,
+                    request.Fecha,
+                    request.HoraInicio,
+                    request.DuracionMinutos))
+                {
+                    return false;
+                }
+
                 var clase = new Clase
                 {
                     ProfesorId = request.ProfesorId,
@@ -81,6 +90,29 @@ namespace Application.Services
             }).ToList();
         }
 
+        public List<ClaseResponse> GetByProfesorId(int profesorId)
+        {
+            var clases = _claseRepository.GetAll()
+                .Where(c => c.ProfesorId == profesorId && c.Activa)
+                .ToList();
+
+            return clases.Select(c => new ClaseResponse
+            {
+                Id = c.Id,
+                ProfesorId = c.ProfesorId,
+                SalaId = c.SalaId,
+                SucursalId = c.SucursalId,
+                Nombre = c.Nombre,
+                Descripcion = c.Descripcion,
+                Duracion = c.DuracionMinutos,
+                HoraInicio = c.HoraInicio,
+                Fecha = c.Fecha,
+                Capacidad = c.Capacidad,
+                CupoDisponible = c.Capacidad - _reservaRepository.GetByClaseId(c.Id).Count,
+                Activa = c.Activa
+            }).ToList();
+        }
+
         public ClaseResponse? GetById(int id)
         {
             var clase = _claseRepository.GetById(id);
@@ -101,6 +133,12 @@ namespace Application.Services
                 CupoDisponible = clase.Capacidad - _reservaRepository.GetByClaseId(clase.Id).Count,
                 Activa = clase.Activa
             };
+        }
+
+        public int? GetProfesorIdByClaseId(int claseId)
+        {
+            var clase = _claseRepository.GetById(claseId);
+            return clase?.ProfesorId;
         }
 
         public bool Delete(int id)

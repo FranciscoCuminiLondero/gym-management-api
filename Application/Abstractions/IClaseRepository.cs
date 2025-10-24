@@ -9,5 +9,6 @@ namespace Application.Abstractions
         List<Clase> GetBySucursalId(int sucursalId);
         List<Clase> GetBySalaId(int salaId);
         List<Clase> GetDisponiblesPorFecha(DateOnly fecha);
+        bool TieneConflictoHorario(int profesorId, DateOnly fecha, TimeOnly horaInicio, int duracionMinutos);
     }
 }
