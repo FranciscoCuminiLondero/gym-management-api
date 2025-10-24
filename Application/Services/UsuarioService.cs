@@ -37,6 +37,15 @@ namespace Application.Services
             return _usuarioRepository.GetWithPasswordByEmail(email);
         }
 
+        public bool Desactivar(int id)
+        {
+            var usuario = _usuarioRepository.GetById(id);
+            if (usuario == null) return false;
+
+            usuario.Activo = false;
+            return _usuarioRepository.Update(usuario);
+        }
+
         public Contract.Responses.UsuarioResponse? GetDtoByEmail(string email)
         {
             return _usuarioRepository.GetDtoByEmail(email);

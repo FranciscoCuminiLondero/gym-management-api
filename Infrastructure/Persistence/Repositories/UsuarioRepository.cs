@@ -159,6 +159,20 @@ namespace Infrastructure.Persistence.Repositories
             return false;
         }
 
+        public bool Update(Usuario usuario)
+        {
+            try
+            {
+                _context.Usuarios.Update(usuario);
+                _context.SaveChanges();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public bool HasMembresiaActiva(int alumnoId)
         {
             return _context.Membresias.Any(m =>

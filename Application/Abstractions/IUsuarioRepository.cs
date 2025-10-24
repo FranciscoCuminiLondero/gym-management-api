@@ -7,15 +7,13 @@ namespace Application.Abstractions
         Usuario? GetByEmail(string email);
         Usuario? GetById(int id);
         bool ExistsByEmail(string email);
-    bool ExistsByDni(string dni);
+        bool ExistsByDni(string dni);
         bool IsActivo(int id);
-        // Response helpers
+        bool Update(Usuario usuario);
         Contract.Responses.UsuarioResponse? GetDtoByEmail(string email);
         Contract.Responses.UsuarioResponse? GetDtoById(int id);
-    List<Contract.Responses.UsuarioResponse> GetAllDtos();
-    // Paged + filter by query (searches nombre or email)
-    (List<Contract.Responses.UsuarioResponse> Items, int Total) GetPagedDtos(int page, int pageSize, string? q = null);
-        // Devuelve la entidad completa (incluye PasswordHash) para usos de autenticación.
+        List<Contract.Responses.UsuarioResponse> GetAllDtos();
+        (List<Contract.Responses.UsuarioResponse> Items, int Total) GetPagedDtos(int page, int pageSize, string? q = null);
         Domain.Entities.Usuario? GetWithPasswordByEmail(string email);
         bool HasMembresiaActiva(int alumnoId);
     }

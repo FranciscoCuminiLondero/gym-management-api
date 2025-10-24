@@ -8,9 +8,8 @@ namespace Application.Services
         Usuario? GetById(int id);
         bool ExistsByEmail(string email);
         bool ExistsByDni(string dni);
-        // Devuelve la entidad completa (incluye PasswordHash) para autenticación
         Usuario? GetWithPasswordByEmail(string email);
-        // DTO helpers
+        bool Desactivar(int id);
         Contract.Responses.UsuarioResponse? GetDtoByEmail(string email);
         Contract.Responses.UsuarioResponse? GetDtoById(int id);
         List<Contract.Responses.UsuarioResponse> GetAllDtos();
