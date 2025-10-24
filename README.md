@@ -226,6 +226,7 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 | `/api/sucursales` | GET | 🌐 Público | Ver sucursales activas |
 | `/api/sucursales/all` | GET | 🔐 Admin | Ver todas (incluidas inactivas) |
 | `/api/sucursales/{id}` | GET | 🌐 Público | Detalles de sucursal |
+| `/api/sucursales/{id}` | PUT | 🔐 Admin | Actualizar sucursal |
 | `/api/sucursales/{id}` | DELETE | 🔐 Admin | Desactivar sucursal |
 
 ### 🏠 Salas
@@ -235,6 +236,7 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 | `/api/salas` | GET | 🌐 Público | Ver todas las salas |
 | `/api/salas/sucursal/{id}` | GET | 🌐 Público | Salas de una sucursal |
 | `/api/salas/{id}` | GET | 🌐 Público | Detalles de sala |
+| `/api/salas/{id}` | PUT | 🔐 Admin | Actualizar sala |
 | `/api/salas/{id}` | DELETE | 🔐 Admin | Desactivar sala |
 
 **Leyenda:**
@@ -259,6 +261,8 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 - `CreateProfesorRequest`: Registro de profesor
 - `UpdateAlumnoRequest`: Actualización de datos de alumno
 - `UpdateProfesorRequest`: Actualización de datos de profesor
+- `UpdateSucursalRequest`: Actualización de sucursal
+- `UpdateSalaRequest`: Actualización de sala
 
 ### Responses
 
@@ -506,6 +510,32 @@ Authorization: Bearer {profesor-token}
   "nombre": "Carlos Eduardo",
   "apellido": "Rodríguez García",
   "telefono": "555-8888"
+}
+```
+
+#### Actualizar Sucursal
+```json
+PUT /api/sucursales/1
+Authorization: Bearer {admin-token}
+
+{
+  "nombre": "Sucursal Centro Premium",
+  "direccion": "Av. Principal 123 - Piso 2",
+  "telefono": "555-1000",
+  "email": "centro@gym.com"
+}
+```
+
+#### Actualizar Sala
+```json
+PUT /api/salas/1
+Authorization: Bearer {admin-token}
+
+{
+  "nombre": "Sala VIP",
+  "tipo": "Multiuso",
+  "capacidad": 30,
+  "descripcion": "Sala premium con equipamiento completo"
 }
 ```
 
