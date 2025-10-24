@@ -29,6 +29,7 @@ namespace Application.Services
             var mensaje = $"Tu reserva para la clase '{clase.Nombre}' el {clase.Fecha:yyyy-MM-dd} ha sido confirmada.";
             var notificacion = new Notificacion
             {
+                Tipo = "Email",
                 Destino = alumnoDto.Email,
                 Mensaje = mensaje,
                 FechaEnvio = DateOnly.FromDateTime(DateTime.Today),
@@ -50,6 +51,7 @@ namespace Application.Services
 
             var notificacion = new Notificacion
             {
+                Tipo = "Email",
                 Destino = profesorDto.Email,
                 Mensaje = mensaje,
                 FechaEnvio = DateOnly.FromDateTime(DateTime.Today),
