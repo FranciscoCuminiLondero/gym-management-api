@@ -1,4 +1,5 @@
 using Application.Abstractions;
+using Contract.Requests;
 using Contract.Responses;
 
 namespace Application.Services
@@ -54,6 +55,26 @@ namespace Application.Services
                 Email = sucursal.Email,
                 Activa = sucursal.Activa
             };
+        }
+
+        public bool Update(int id, UpdateSucursalRequest request)
+        {
+            var sucursal = _sucursalRepository.GetById(id);
+            if (sucursal == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(request.Nombre))
+                sucursal.Nombre = request.Nombre;
+            
+            if (!string.IsNullOrWhiteSpace(request.Direccion))
+                sucursal.Direccion = request.Direccion;
+            
+            if (!string.IsNullOrWhiteSpace(request.Telefono))
+                sucursal.Telefono = request.Telefono;
+            
+            if (!string.IsNullOrWhiteSpace(request.Email))
+                sucursal.Email = request.Email;
+
+            return _sucursalRepository.Update(sucursal);
         }
 
         public bool Desactivar(int id)

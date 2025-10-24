@@ -1,4 +1,5 @@
 using Application.Abstractions;
+using Contract.Requests;
 using Contract.Responses;
 
 namespace Application.Services
@@ -57,6 +58,26 @@ namespace Application.Services
                 Descripcion = sala.Descripcion,
                 Activa = sala.Activa
             };
+        }
+
+        public bool Update(int id, UpdateSalaRequest request)
+        {
+            var sala = _salaRepository.GetById(id);
+            if (sala == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(request.Nombre))
+                sala.Nombre = request.Nombre;
+            
+            if (!string.IsNullOrWhiteSpace(request.Tipo))
+                sala.Tipo = request.Tipo;
+            
+            if (request.Capacidad.HasValue)
+                sala.Capacidad = request.Capacidad.Value;
+            
+            if (!string.IsNullOrWhiteSpace(request.Descripcion))
+                sala.Descripcion = request.Descripcion;
+
+            return _salaRepository.Update(sala);
         }
 
         public bool Desactivar(int id)
