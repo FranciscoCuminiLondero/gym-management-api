@@ -1,4 +1,5 @@
 using Application.Services;
+using Contract.Requests;
 using Contract.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,16 @@ namespace Presentation.Controllers
             var sucursal = _sucursalService.GetById(id);
             if (sucursal == null) return NotFound();
             return Ok(sucursal);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Update(int id, [FromBody] UpdateSucursalRequest request)
+        {
+            var resultado = _sucursalService.Update(id, request);
+            if (!resultado) return NotFound("Sucursal no encontrada.");
+
+            return Ok(new { message = "Sucursal actualizada exitosamente." });
         }
 
         [HttpDelete("{id}")]

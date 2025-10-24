@@ -1,4 +1,5 @@
 using Application.Services;
+using Contract.Requests;
 using Contract.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,16 @@ namespace Presentation.Controllers
             var sala = _salaService.GetById(id);
             if (sala == null) return NotFound();
             return Ok(sala);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Update(int id, [FromBody] UpdateSalaRequest request)
+        {
+            var resultado = _salaService.Update(id, request);
+            if (!resultado) return NotFound("Sala no encontrada.");
+
+            return Ok(new { message = "Sala actualizada exitosamente." });
         }
 
         [HttpDelete("{id}")]
