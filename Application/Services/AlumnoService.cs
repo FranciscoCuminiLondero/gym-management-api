@@ -78,5 +78,32 @@ namespace Application.Services
 
             return _alumnoRepository.Create(nuevoAlumno);
         }
+
+        public bool Update(int id, UpdateAlumnoRequest request)
+        {
+            var alumno = _alumnoRepository.GetById(id);
+            if (alumno == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(request.Nombre))
+                alumno.Nombre = request.Nombre;
+
+            if (!string.IsNullOrWhiteSpace(request.Apellido))
+                alumno.Apellido = request.Apellido;
+
+            if (!string.IsNullOrWhiteSpace(request.Telefono))
+                alumno.Telefono = request.Telefono;
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                if (request.Email != alumno.Email && _usuarioService.ExistsByEmail(request.Email))
+                    return false;
+                alumno.Email = request.Email;
+            }
+
+            if (request.FechaNacimiento.HasValue)
+                alumno.FechaNacimiento = request.FechaNacimiento.Value;
+
+            return _alumnoRepository.Update(alumno);
+        }
     }
 }

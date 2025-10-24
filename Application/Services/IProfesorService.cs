@@ -9,5 +9,6 @@ namespace Application.Services
         List<ProfesorResponse> GetAll();
         ProfesorResponse? GetById(int id);
         bool Create(CreateProfesorRequest request);
+        bool Update(int id, UpdateProfesorRequest request);
     }
 }

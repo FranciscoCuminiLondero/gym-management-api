@@ -75,5 +75,32 @@ namespace Application.Services
 
             return _profesorRepository.Create(nuevoProfesor);
         }
+
+        public bool Update(int id, UpdateProfesorRequest request)
+        {
+            var profesor = _profesorRepository.GetById(id);
+            if (profesor == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(request.Nombre))
+                profesor.Nombre = request.Nombre;
+
+            if (!string.IsNullOrWhiteSpace(request.Apellido))
+                profesor.Apellido = request.Apellido;
+
+            if (!string.IsNullOrWhiteSpace(request.Telefono))
+                profesor.Telefono = request.Telefono;
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                if (request.Email != profesor.Email && _usuarioService.ExistsByEmail(request.Email))
+                    return false;
+                profesor.Email = request.Email;
+            }
+
+            if (request.FechaNacimiento.HasValue)
+                profesor.FechaNacimiento = request.FechaNacimiento.Value;
+
+            return _profesorRepository.Update(profesor);
+        }
     }
 }
