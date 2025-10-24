@@ -41,7 +41,7 @@ namespace Presentation.Controllers
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
-            
+
             if (!isAdmin && userIdClaim != id.ToString())
             {
                 return StatusCode(403, "No tiene permisos para modificar este profesor.");

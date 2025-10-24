@@ -67,13 +67,13 @@ namespace Application.Services
 
             if (!string.IsNullOrWhiteSpace(request.Nombre))
                 sala.Nombre = request.Nombre;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Tipo))
                 sala.Tipo = request.Tipo;
-            
+
             if (request.Capacidad.HasValue)
                 sala.Capacidad = request.Capacidad.Value;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Descripcion))
                 sala.Descripcion = request.Descripcion;
 

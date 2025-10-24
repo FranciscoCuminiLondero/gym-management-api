@@ -64,13 +64,13 @@ namespace Application.Services
 
             if (!string.IsNullOrWhiteSpace(request.Nombre))
                 sucursal.Nombre = request.Nombre;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Direccion))
                 sucursal.Direccion = request.Direccion;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Telefono))
                 sucursal.Telefono = request.Telefono;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Email))
                 sucursal.Email = request.Email;
 
