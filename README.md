@@ -123,6 +123,16 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 - **Profesor**: Gestión de clases propias
 - **Alumno**: Reserva de clases, gestión de perfil propio
 
+### Seguridad de Contraseñas
+
+El sistema implementa medidas de seguridad robustas:
+
+- **Hash PBKDF2 con Salt**: Cada contraseña se hashea con algoritmo PBKDF2-SHA256
+- **Salt único por usuario**: Previene ataques de rainbow tables
+- **10,000 iteraciones**: Protección contra fuerza bruta
+- **Límite de intentos fallidos**: Máximo 3 intentos antes del bloqueo temporal
+- **Bloqueo automático**: 15 minutos de bloqueo tras 3 intentos fallidos
+
 ### Políticas de Autorización
 
 ```csharp
@@ -131,6 +141,27 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 - AlumnoPolicy: Solo alumnos
 - AdminOrSuperAdminPolicy: Administradores o SuperAdministradores
 ```
+
+### Configuración de JWT
+
+El sistema utiliza **variables de entorno** para mayor seguridad:
+
+- **Variable de entorno**: `JWT_SECRET_KEY` (recomendado para producción)
+- **Archivo de configuración**: `appsettings.Development.json` (solo desarrollo)
+
+Para configurar la variable de entorno:
+
+**Windows PowerShell:**
+```powershell
+$env:JWT_SECRET_KEY="ClaveSuperSecreta1234567890ABCD1234!"
+```
+
+**Linux/Mac:**
+```bash
+export JWT_SECRET_KEY="ClaveSuperSecreta1234567890ABCD1234!"
+```
+
+Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURACION-VARIABLES-ENTORNO.md)
 
 ### Credenciales por Defecto
 
@@ -150,10 +181,16 @@ El sistema implementa **autenticación JWT** con los siguientes roles:
 2. **Login** (`POST /api/auth/login`):
    - Retorna token JWT válido por 1 hora
    - Incluye rol del usuario
+   - **Status 423**: Cuenta bloqueada por intentos fallidos
 
 3. **Uso del Token**:
    - Header: `Authorization: Bearer {token}`
    - Validación automática en endpoints protegidos
+
+4. **Protección contra Fuerza Bruta**:
+   - 3 intentos fallidos → Bloqueo de 15 minutos
+   - Mensaje detallado: "Cuenta bloqueada. Intente en X minutos"
+   - Reseteo automático tras login exitoso
 
 ---
 
@@ -777,6 +814,17 @@ dotnet ef migrations remove --project Infrastructure --startup-project Api
 ## 📚 Documentación Adicional
 
 El proyecto incluye documentación detallada en archivos markdown:
+
+- **`AUTENTICACION-REVISION.md`**: Revisión completa de seguridad JWT
+  - Análisis de implementación vs documentación
+  - Mejoras de seguridad aplicadas (PBKDF2, límite de intentos)
+  - Recomendaciones para producción
+
+- **`CONFIGURACION-VARIABLES-ENTORNO.md`**: Guía de configuración segura
+  - Configuración de JWT_SECRET_KEY
+  - Variables de entorno por plataforma (Azure, Docker, Kubernetes)
+  - Generación de claves seguras
+  - Troubleshooting común
 
 - **`AUTORIZACION-GUIA.md`**: Guía completa de autorización por roles
   - Ejemplos de uso de atributos `[Authorize]`
