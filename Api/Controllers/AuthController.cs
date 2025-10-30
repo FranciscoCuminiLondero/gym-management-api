@@ -94,7 +94,6 @@ namespace Presentation.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginRequest request)
         {
-            // Verificar si la cuenta está bloqueada ANTES de intentar login
             var usuario = _usuarioRepository.GetWithPasswordByEmail(request.Email);
             if (usuario != null && usuario.LockoutEnd.HasValue && usuario.LockoutEnd.Value > DateTime.UtcNow)
             {
@@ -105,7 +104,6 @@ namespace Presentation.Controllers
             var authResponse = _authService.Login(request);
             if (authResponse == null)
             {
-                // Verificar intentos fallidos después del intento
                 usuario = _usuarioRepository.GetWithPasswordByEmail(request.Email);
                 if (usuario != null && usuario.FailedLoginAttempts >= 3)
                 {
