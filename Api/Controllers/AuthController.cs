@@ -65,7 +65,11 @@ namespace Presentation.Controllers
                 new Claim(ClaimTypes.Role, authResult.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                         ?? _configuration["Jwt:Key"]
+                         ?? throw new InvalidOperationException("JWT Key no configurada");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -90,9 +94,26 @@ namespace Presentation.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginRequest request)
         {
+            // Verificar si la cuenta está bloqueada ANTES de intentar login
+            var usuario = _usuarioRepository.GetWithPasswordByEmail(request.Email);
+            if (usuario != null && usuario.LockoutEnd.HasValue && usuario.LockoutEnd.Value > DateTime.UtcNow)
+            {
+                var minutosRestantes = (int)(usuario.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes + 1;
+                return StatusCode(423, $"Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente nuevamente en {minutosRestantes} minuto(s).");
+            }
+
             var authResponse = _authService.Login(request);
             if (authResponse == null)
+            {
+                // Verificar intentos fallidos después del intento
+                usuario = _usuarioRepository.GetWithPasswordByEmail(request.Email);
+                if (usuario != null && usuario.FailedLoginAttempts >= 3)
+                {
+                    return StatusCode(423, "Cuenta bloqueada por múltiples intentos fallidos. Intente nuevamente en 15 minutos.");
+                }
+
                 return Unauthorized("Credenciales incorrectas.");
+            }
 
             var claims = new[]
             {
@@ -101,7 +122,11 @@ namespace Presentation.Controllers
                 new Claim(ClaimTypes.Role, authResponse.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                         ?? _configuration["Jwt:Key"]
+                         ?? throw new InvalidOperationException("JWT Key no configurada");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
