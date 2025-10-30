@@ -108,17 +108,13 @@ namespace Application.Services
             if (usuario == null)
                 return null;
 
-            // Verificar si la cuenta está bloqueada
             if (usuario.LockoutEnd.HasValue && usuario.LockoutEnd.Value > DateTime.UtcNow)
             {
-                // Usuario bloqueado temporalmente
                 return null;
             }
 
-            // Verificar contraseña
             if (VerifyPassword(request.Password, usuario.PasswordHash))
             {
-                // Login exitoso: resetear intentos fallidos
                 if (usuario.FailedLoginAttempts > 0 || usuario.LockoutEnd.HasValue)
                 {
                     usuario.FailedLoginAttempts = 0;
@@ -134,13 +130,10 @@ namespace Application.Services
                 };
             }
 
-            // Contraseña incorrecta: incrementar intentos fallidos
             usuario.FailedLoginAttempts++;
 
-            // Bloquear cuenta si alcanza 3 intentos fallidos
             if (usuario.FailedLoginAttempts >= 3)
             {
-                // Bloquear por 15 minutos
                 usuario.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
             }
 
@@ -151,20 +144,16 @@ namespace Application.Services
 
         private string HashPassword(string password)
         {
-            // Usar PBKDF2 con salt para mayor seguridad
-            // Genera un salt aleatorio de 16 bytes
             byte[] salt = new byte[16];
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(salt);
             }
 
-            // Genera el hash usando PBKDF2 con 10000 iteraciones
             var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256);
             byte[] hash = pbkdf2.GetBytes(32);
 
-            // Combina salt + hash para almacenar
-            byte[] hashBytes = new byte[48]; // 16 bytes salt + 32 bytes hash
+            byte[] hashBytes = new byte[48];
             Array.Copy(salt, 0, hashBytes, 0, 16);
             Array.Copy(hash, 0, hashBytes, 16, 32);
 
@@ -173,18 +162,14 @@ namespace Application.Services
 
         private bool VerifyPassword(string password, string hash)
         {
-            // Extrae salt y hash del string almacenado
             byte[] hashBytes = Convert.FromBase64String(hash);
 
-            // Extrae el salt (primeros 16 bytes)
             byte[] salt = new byte[16];
             Array.Copy(hashBytes, 0, salt, 0, 16);
 
-            // Genera hash de la contraseña ingresada con el mismo salt
             var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256);
             byte[] testHash = pbkdf2.GetBytes(32);
 
-            // Compara los hashes
             for (int i = 0; i < 32; i++)
             {
                 if (hashBytes[i + 16] != testHash[i])
