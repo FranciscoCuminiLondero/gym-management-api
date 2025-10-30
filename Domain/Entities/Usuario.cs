@@ -14,5 +14,7 @@ namespace Domain.Entities
         public string Telefono { get; set; }
         public DateOnly FechaNacimiento { get; set; }
         public bool Activo { get; set; }
+        public int FailedLoginAttempts { get; set; } = 0;
+        public DateTime? LockoutEnd { get; set; }
     }
 }
