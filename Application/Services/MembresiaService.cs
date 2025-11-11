@@ -8,23 +8,26 @@ namespace Application.Services
     {
         private readonly IMembresiaRepository _membresiaRepository;
         private readonly IAlumnoRepository _alumnoRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly IPlanRepository _planRepository;
         private readonly IPagoService _pagoService;
 
         public MembresiaService(
             IMembresiaRepository membresiaRepository, 
             IAlumnoRepository alumnoRepository, 
+            IUsuarioRepository usuarioRepository,
             IPlanRepository planRepository, 
             IPagoService pagoService)
         {
             _membresiaRepository = membresiaRepository;
             _alumnoRepository = alumnoRepository;
+            _usuarioRepository = usuarioRepository;
             _planRepository = planRepository;
             _pagoService = pagoService;
         }
         public bool AsociarMembresia(CreateMembresiaRequest request)
         {
-            if (!_alumnoRepository.IsActivo(request.AlumnoId))
+            if (!_usuarioRepository.IsActivo(request.AlumnoId))
                 return false;
 
             var plan = _planRepository.GetById(request.PlanId);

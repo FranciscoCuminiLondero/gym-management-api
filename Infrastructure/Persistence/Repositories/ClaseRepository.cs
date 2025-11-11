@@ -6,8 +6,8 @@ namespace Infrastructure.Persistence.Repositories
     public class ClaseRepository : BaseRepository<Clase>, IClaseRepository
     {
         private readonly GymDbContext _context;
-        public ClaseRepository(GymDbContext context) : base(context) 
-        { 
+        public ClaseRepository(GymDbContext context) : base(context)
+        {
             _context = context;
         }
         public Clase? GetByIdWithDetails(int id)
@@ -40,6 +40,22 @@ namespace Infrastructure.Persistence.Repositories
             return _context.Clases
                 .Where(c => c.Fecha == fecha && c.Activa)
                 .ToList();
+        }
+
+        public bool TieneConflictoHorario(int profesorId, DateOnly fecha, TimeOnly horaInicio, int duracionMinutos)
+        {
+            var horaFin = horaInicio.AddMinutes(duracionMinutos);
+
+            return _context.Clases.Any(c =>
+                c.ProfesorId == profesorId &&
+                c.Fecha == fecha &&
+                c.Activa &&
+                (
+                    (horaInicio >= c.HoraInicio && horaInicio < c.HoraInicio.AddMinutes(c.DuracionMinutos)) ||
+                    (horaFin > c.HoraInicio && horaFin <= c.HoraInicio.AddMinutes(c.DuracionMinutos)) ||
+                    (horaInicio <= c.HoraInicio && horaFin >= c.HoraInicio.AddMinutes(c.DuracionMinutos))
+                )
+            );
         }
     }
 }

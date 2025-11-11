@@ -18,6 +18,14 @@ namespace Infrastructure.Persistence.Repositories
                 r.Activo);
         }
 
+        public bool ExistsByAlumnoAndFecha(int alumnoId, DateOnly fecha)
+        {
+            return _context.Reservas.Any(r =>
+                r.AlumnoId == alumnoId &&
+                r.Clase.Fecha == fecha &&
+                r.Activo);
+        }
+
         public List<Reserva> GetByAlumnoId(int alumnoId)
         {
             return _context.Reservas

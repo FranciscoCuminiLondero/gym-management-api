@@ -8,10 +8,12 @@ namespace Application.Services
     public class ProfesorService : IProfesorService
     {
         private readonly IProfesorRepository _profesorRepository;
+        private readonly IUsuarioService _usuarioService;
 
-        public ProfesorService(IProfesorRepository profesorRepository)
+        public ProfesorService(IProfesorRepository profesorRepository, IUsuarioService usuarioService)
         {
             _profesorRepository = profesorRepository;
+            _usuarioService = usuarioService;
         }
 
         public List<ProfesorResponse> GetAll()
@@ -56,7 +58,7 @@ namespace Application.Services
                 return false;
             }
 
-            if (_profesorRepository.ExistsByEmail(request.Email))
+            if (_usuarioService.ExistsByEmail(request.Email))
             {
                 return false;
             }
@@ -72,6 +74,33 @@ namespace Application.Services
             };
 
             return _profesorRepository.Create(nuevoProfesor);
+        }
+
+        public bool Update(int id, UpdateProfesorRequest request)
+        {
+            var profesor = _profesorRepository.GetById(id);
+            if (profesor == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(request.Nombre))
+                profesor.Nombre = request.Nombre;
+
+            if (!string.IsNullOrWhiteSpace(request.Apellido))
+                profesor.Apellido = request.Apellido;
+
+            if (!string.IsNullOrWhiteSpace(request.Telefono))
+                profesor.Telefono = request.Telefono;
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                if (request.Email != profesor.Email && _usuarioService.ExistsByEmail(request.Email))
+                    return false;
+                profesor.Email = request.Email;
+            }
+
+            if (request.FechaNacimiento.HasValue)
+                profesor.FechaNacimiento = request.FechaNacimiento.Value;
+
+            return _profesorRepository.Update(profesor);
         }
     }
 }

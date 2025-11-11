@@ -2,6 +2,7 @@
 using Application.Services;
 using Contract.Requests;
 using Contract.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,19 +16,16 @@ namespace Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IAlumnoRepository _alumnoRepository;
-        private readonly IProfesorRepository _profesorRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly IConfiguration _configuration;
         public AuthController(
-            IAuthService authService, 
+            IAuthService authService,
             IConfiguration configuration,
-            IProfesorRepository profesorRepository,
-            IAlumnoRepository alumnoRepository)
+            IUsuarioRepository usuarioRepository)
         {
             _authService = authService;
             _configuration = configuration;
-            _profesorRepository = profesorRepository;
-            _alumnoRepository = alumnoRepository;
+            _usuarioRepository = usuarioRepository;
         }
 
         [HttpPost("register")]
@@ -39,13 +37,22 @@ namespace Presentation.Controllers
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Email y contraseña son obligatorios.");
 
+            if (request.Role == "Profesor" || request.Role == "Administrador")
+            {
+                if (!User.Identity?.IsAuthenticated ?? true)
+                    return Unauthorized("Debe estar autenticado como administrador para crear profesores o administradores.");
+
+                if (!User.IsInRole("Administrador"))
+                    return StatusCode(403, "Solo los administradores pueden crear profesores o administradores.");
+            }
+
             if (request.PlanId <= 0 && request.Role == "Alumno")
                 return BadRequest("Debe seleccionar un plan válido.");
 
             var authResult = _authService.Register(request);
             if (authResult == null)
             {
-                if (_alumnoRepository.ExistsByEmail(request.Email) || _profesorRepository.ExistsByEmail(request.Email))
+                if (_usuarioRepository.ExistsByEmail(request.Email))
                     return BadRequest("Ya existe una cuenta con ese email.");
 
                 return BadRequest("No se pudo crear la cuenta. Verifique los datos e intente nuevamente.");
@@ -58,7 +65,11 @@ namespace Presentation.Controllers
                 new Claim(ClaimTypes.Role, authResult.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                         ?? _configuration["Jwt:Key"]
+                         ?? throw new InvalidOperationException("JWT Key no configurada");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -83,9 +94,24 @@ namespace Presentation.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginRequest request)
         {
+            var usuario = _usuarioRepository.GetWithPasswordByEmail(request.Email);
+            if (usuario != null && usuario.LockoutEnd.HasValue && usuario.LockoutEnd.Value > DateTime.UtcNow)
+            {
+                var minutosRestantes = (int)(usuario.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes + 1;
+                return StatusCode(423, $"Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente nuevamente en {minutosRestantes} minuto(s).");
+            }
+
             var authResponse = _authService.Login(request);
             if (authResponse == null)
+            {
+                usuario = _usuarioRepository.GetWithPasswordByEmail(request.Email);
+                if (usuario != null && usuario.FailedLoginAttempts >= 3)
+                {
+                    return StatusCode(423, "Cuenta bloqueada por múltiples intentos fallidos. Intente nuevamente en 15 minutos.");
+                }
+
                 return Unauthorized("Credenciales incorrectas.");
+            }
 
             var claims = new[]
             {
@@ -94,7 +120,11 @@ namespace Presentation.Controllers
                 new Claim(ClaimTypes.Role, authResponse.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                         ?? _configuration["Jwt:Key"]
+                         ?? throw new InvalidOperationException("JWT Key no configurada");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(

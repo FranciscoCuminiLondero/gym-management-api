@@ -17,51 +17,6 @@ namespace Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
 
-            modelBuilder.Entity("Domain.Entities.Alumno", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Apellido")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Dni")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateOnly>("FechaNacimiento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Telefono")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Alumnos");
-                });
-
             modelBuilder.Entity("Domain.Entities.Auditoria", b =>
                 {
                     b.Property<int>("Id")
@@ -256,51 +211,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Planes");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Profesor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Apellido")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Dni")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateOnly>("FechaNacimiento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Telefono")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Profesores");
-                });
-
             modelBuilder.Entity("Domain.Entities.Reserva", b =>
                 {
                     b.Property<int>("Id")
@@ -334,6 +244,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("Activa")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Capacidad")
                         .HasColumnType("INTEGER");
 
@@ -348,11 +261,57 @@ namespace Infrastructure.Migrations
                     b.Property<int>("SucursalId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SucursalId");
 
                     b.ToTable("Salas");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activa = true,
+                            Capacidad = 25,
+                            Descripcion = "Sala multiuso para yoga, pilates y actividades grupales",
+                            Nombre = "Sala A",
+                            SucursalId = 1,
+                            Tipo = "Multiuso"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activa = true,
+                            Capacidad = 20,
+                            Descripcion = "Sala equipada con 20 bicicletas estáticas profesionales",
+                            Nombre = "Sala B",
+                            SucursalId = 1,
+                            Tipo = "Spinning"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activa = true,
+                            Capacidad = 30,
+                            Descripcion = "Espacio amplio para entrenamiento funcional y crossfit",
+                            Nombre = "Sala 1",
+                            SucursalId = 2,
+                            Tipo = "Funcional"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activa = true,
+                            Capacidad = 40,
+                            Descripcion = "Sala de musculación con equipamiento completo",
+                            Nombre = "Sala 2",
+                            SucursalId = 2,
+                            Tipo = "Pesas"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Sucursal", b =>
@@ -383,6 +342,116 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Sucursales");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activa = true,
+                            Direccion = "Av. Principal 123",
+                            Email = "centro@gym.com",
+                            Nombre = "Sucursal Centro",
+                            Telefono = "555-0001"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activa = true,
+                            Direccion = "Calle Norte 456",
+                            Email = "norte@gym.com",
+                            Nombre = "Sucursal Norte",
+                            Telefono = "555-0002"
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Dni")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FailedLoginAttempts")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("FechaNacimiento")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Usuarios");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Usuario");
+
+                    b.UseTphMappingStrategy();
+
+                    b.HasData(
+                        new
+                        {
+                            Id = -9999,
+                            Activo = true,
+                            Apellido = "User",
+                            Dni = "00000000",
+                            Email = "admin@gym.com",
+                            FailedLoginAttempts = 0,
+                            FechaNacimiento = new DateOnly(1990, 1, 1),
+                            Nombre = "Admin",
+                            PasswordHash = "PrP+ZrMeO00Q+nC1ytSccRIpSvauTkdqHEBRVdRaoSE=",
+                            Role = "Administrador",
+                            Telefono = ""
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.Alumno", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Usuario");
+
+                    b.HasDiscriminator().HasValue("Alumno");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Profesor", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Usuario");
+
+                    b.HasDiscriminator().HasValue("Profesor");
                 });
 
             modelBuilder.Entity("Domain.Entities.Clase", b =>
@@ -472,11 +541,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Sucursal");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Alumno", b =>
-                {
-                    b.Navigation("Membresias");
-                });
-
             modelBuilder.Entity("Domain.Entities.Clase", b =>
                 {
                     b.Navigation("Reservas");
@@ -492,11 +556,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Membresias");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Profesor", b =>
-                {
-                    b.Navigation("Clases");
-                });
-
             modelBuilder.Entity("Domain.Entities.Sala", b =>
                 {
                     b.Navigation("Clases");
@@ -507,6 +566,16 @@ namespace Infrastructure.Migrations
                     b.Navigation("Clases");
 
                     b.Navigation("Salas");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Alumno", b =>
+                {
+                    b.Navigation("Membresias");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Profesor", b =>
+                {
+                    b.Navigation("Clases");
                 });
 #pragma warning restore 612, 618
         }

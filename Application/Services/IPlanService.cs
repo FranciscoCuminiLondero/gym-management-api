@@ -7,5 +7,6 @@ namespace Application.Services
     {
         List<PlanResponse> GetPlanesActivos();
         bool Create(CreatePlanRequest request);
+        bool Delete(int id);
     }
 }

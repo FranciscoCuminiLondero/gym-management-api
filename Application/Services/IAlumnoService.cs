@@ -8,5 +8,6 @@ namespace Application.Services
         List<AlumnoResponse> GetAll();
         AlumnoResponse? GetById(int id);
         bool Create(CreateAlumnoRequest request);
+        bool Update(int id, UpdateAlumnoRequest request);
     }
 }

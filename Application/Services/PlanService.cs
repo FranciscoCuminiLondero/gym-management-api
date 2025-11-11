@@ -42,5 +42,13 @@ namespace Application.Services
 
             return _planRepository.Create(plan);
         }
+
+        public bool Delete(int id)
+        {
+            var plan = _planRepository.GetById(id);
+            if (plan == null) return false;
+
+            return _planRepository.Delete(plan);
+        }
     }
 }

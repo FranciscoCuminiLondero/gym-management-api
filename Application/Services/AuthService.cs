@@ -3,7 +3,6 @@ using Contract.Requests;
 using Contract.Responses;
 using Domain.Entities;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace Application.Services
 {
@@ -13,18 +12,23 @@ namespace Application.Services
         private readonly IProfesorRepository _profesorRepository;
         private readonly IMembresiaService _membresiaService;
         private readonly IPlanRepository _planRepository;
-        private readonly string _jwtKey = "tu_clave_secreta_muy_larga_y_segura_32_caracteres";
+        private readonly IUsuarioService _usuarioService;
+        private readonly IUsuarioRepository _usuarioRepository;
 
         public AuthService(
-            IAlumnoRepository alumnoRepository, 
-            IProfesorRepository profesorRepository, 
-            IMembresiaService membresiaService, 
-            IPlanRepository planRepository)
+            IAlumnoRepository alumnoRepository,
+            IProfesorRepository profesorRepository,
+            IMembresiaService membresiaService,
+            IPlanRepository planRepository,
+            IUsuarioService usuarioService,
+            IUsuarioRepository usuarioRepository)
         {
             _alumnoRepository = alumnoRepository;
             _profesorRepository = profesorRepository;
             _membresiaService = membresiaService;
             _planRepository = planRepository;
+            _usuarioService = usuarioService;
+            _usuarioRepository = usuarioRepository;
         }
 
         public AuthResponse? Register(RegisterRequest request)
@@ -34,7 +38,7 @@ namespace Application.Services
                 if (!_planRepository.IsActivo(request.PlanId))
                     return null;
 
-                if (_alumnoRepository.GetByCriterial(a => a.Email == request.Email).Any())
+                if (_usuarioService.ExistsByEmail(request.Email))
                     return null;
 
                 var alumno = new Alumno
@@ -70,7 +74,7 @@ namespace Application.Services
             }
             else if (request.Role == "Profesor")
             {
-                if (_profesorRepository.GetByCriterial(p => p.Email == request.Email).Any())
+                if (_usuarioService.ExistsByEmail(request.Email))
                     return null;
 
                 var profesor = new Profesor
@@ -100,51 +104,79 @@ namespace Application.Services
 
         public AuthResponse? Login(LoginRequest request)
         {
-            var alumno = _alumnoRepository.GetByCriterial(a => a.Email == request.Email).FirstOrDefault();
-            if (alumno != null && VerifyPassword(request.Password, alumno.PasswordHash))
+            var usuario = _usuarioService.GetWithPasswordByEmail(request.Email);
+            if (usuario == null)
+                return null;
+
+            if (usuario.LockoutEnd.HasValue && usuario.LockoutEnd.Value > DateTime.UtcNow)
             {
+                return null;
+            }
+
+            if (VerifyPassword(request.Password, usuario.PasswordHash))
+            {
+                if (usuario.FailedLoginAttempts > 0 || usuario.LockoutEnd.HasValue)
+                {
+                    usuario.FailedLoginAttempts = 0;
+                    usuario.LockoutEnd = null;
+                    _usuarioRepository.Update(usuario);
+                }
+
                 return new AuthResponse
                 {
-                    Id = alumno.Id,
-                    Nombre = alumno.Nombre,
-                    Role = alumno.Role,
-                    Token = GenerateToken(alumno.Email, alumno.Role, alumno.Id)
+                    Id = usuario.Id,
+                    Nombre = usuario.Nombre,
+                    Role = usuario.Role
                 };
             }
 
-            // Buscar en Profesores
-            var profesor = _profesorRepository.GetByCriterial(p => p.Email == request.Email).FirstOrDefault();
-            if (profesor != null && VerifyPassword(request.Password, profesor.PasswordHash))
+            usuario.FailedLoginAttempts++;
+
+            if (usuario.FailedLoginAttempts >= 3)
             {
-                return new AuthResponse
-                {
-                    Id = profesor.Id,
-                    Nombre = profesor.Nombre,
-                    Role = profesor.Role,
-                    Token = GenerateToken(profesor.Email, profesor.Role, profesor.Id)
-                };
+                usuario.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
             }
+
+            _usuarioRepository.Update(usuario);
 
             return null;
         }
 
         private string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            byte[] salt = new byte[16];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
+
+            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256);
+            byte[] hash = pbkdf2.GetBytes(32);
+
+            byte[] hashBytes = new byte[48];
+            Array.Copy(salt, 0, hashBytes, 0, 16);
+            Array.Copy(hash, 0, hashBytes, 16, 32);
+
+            return Convert.ToBase64String(hashBytes);
         }
 
         private bool VerifyPassword(string password, string hash)
         {
-            var hashOfInput = HashPassword(password);
-            return hashOfInput == hash;
-        }
+            byte[] hashBytes = Convert.FromBase64String(hash);
 
-        private string GenerateToken(string email, string role, int id)
-        {
-            // "token simulado"
-            return $"fake-jwt-token-for-{email}-{role}-{id}";
+            byte[] salt = new byte[16];
+            Array.Copy(hashBytes, 0, salt, 0, 16);
+
+            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256);
+            byte[] testHash = pbkdf2.GetBytes(32);
+
+            for (int i = 0; i < 32; i++)
+            {
+                if (hashBytes[i + 16] != testHash[i])
+                    return false;
+            }
+
+            return true;
         }
     }
 }
