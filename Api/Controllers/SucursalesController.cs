@@ -42,6 +42,20 @@ namespace Presentation.Controllers
             return Ok(sucursal);
         }
 
+        [HttpPost]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Create([FromBody] CreateSucursalRequest request)
+        {
+            if (request == null)
+                return BadRequest("La solicitud no puede ser nula.");
+
+            var resultado = _sucursalService.Create(request);
+            if (!resultado)
+                return BadRequest("No se pudo crear la sucursal. Verifique los datos.");
+
+            return Ok(new { message = "Sucursal creada exitosamente." });
+        }
+
         [HttpPut("{id}")]
         [Authorize(Policy = "AdminPolicy")]
         public IActionResult Update(int id, [FromBody] UpdateSucursalRequest request)
