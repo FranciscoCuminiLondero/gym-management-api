@@ -1,6 +1,7 @@
 using Application.Abstractions;
 using Contract.Requests;
 using Contract.Responses;
+using Domain.Entities;
 
 namespace Application.Services
 {
@@ -55,6 +56,20 @@ namespace Application.Services
                 Email = sucursal.Email,
                 Activa = sucursal.Activa
             };
+        }
+
+        public bool Create(CreateSucursalRequest request)
+        {
+            var sucursal = new Sucursal
+            {
+                Nombre = request.Nombre,
+                Direccion = request.Direccion,
+                Telefono = request.Telefono,
+                Email = request.Email,
+                Activa = true
+            };
+
+            return _sucursalRepository.Create(sucursal);
         }
 
         public bool Update(int id, UpdateSucursalRequest request)
