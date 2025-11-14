@@ -6,7 +6,9 @@
         public string Descripcion { get; set; }
         public decimal Precio { get; set; }
         public int DuracionDias { get; set; }
-        public bool Activo {  get; set; }
+        public int? MaxReservasPorMes { get; set; }
+        public string? TiposPermitidos { get; set; } // JSON string: ["general", "especializada"]
+        public bool Activo { get; set; }
         public List<Membresia> Membresias { get; set; }
     }
 }

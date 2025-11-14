@@ -7,6 +7,7 @@
             Role = "Profesor";
         }
 
+        public string? Especialidad { get; set; }
         public List<Clase> Clases { get; set; }
     }
 }

@@ -13,8 +13,14 @@ namespace Domain.Entities
         public string Email { get; set; }
         public string Telefono { get; set; }
         public DateOnly FechaNacimiento { get; set; }
+        public string? Genero { get; set; }
+        public string? Direccion { get; set; }
+        public string? Image { get; set; }
+        public int? SucursalId { get; set; }
         public bool Activo { get; set; }
         public int FailedLoginAttempts { get; set; } = 0;
         public DateTime? LockoutEnd { get; set; }
+
+        public Sucursal? Sucursal { get; set; }
     }
 }
