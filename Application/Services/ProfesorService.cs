@@ -19,16 +19,15 @@ namespace Application.Services
         public List<ProfesorResponse> GetAll()
         {
             var profesores = _profesorRepository.GetAll();
-            return profesores.Select(p => new ProfesorResponse
-            {
-                Id = p.Id,
-                Nombre = p.Nombre,
-                Apellido = p.Apellido,
-                Dni = p.Dni,
-                Email = p.Email,
-                Telefono = p.Telefono,
-                Activo = p.Activo
-            }).ToList();
+            return profesores.Select(MapToProfesorResponse).ToList();
+        }
+
+        public List<ProfesorResponse> GetBySucursalId(int sucursalId)
+        {
+            var profesores = _profesorRepository.GetAll()
+                .Where(p => p.SucursalId == sucursalId)
+                .ToList();
+            return profesores.Select(MapToProfesorResponse).ToList();
         }
 
         public ProfesorResponse? GetById(int id)
@@ -36,16 +35,7 @@ namespace Application.Services
             var profesor = _profesorRepository.GetById(id);
             if (profesor == null) return null;
 
-            return new ProfesorResponse
-            {
-                Id = profesor.Id,
-                Nombre = profesor.Nombre,
-                Apellido = profesor.Apellido,
-                Dni = profesor.Dni,
-                Email = profesor.Email,
-                Telefono = profesor.Telefono,
-                Activo = profesor.Activo
-            };
+            return MapToProfesorResponse(profesor);
         }
 
         public bool Create(CreateProfesorRequest request)
@@ -87,6 +77,9 @@ namespace Application.Services
             if (!string.IsNullOrWhiteSpace(request.Apellido))
                 profesor.Apellido = request.Apellido;
 
+            if (!string.IsNullOrWhiteSpace(request.Especialidad))
+                profesor.Especialidad = request.Especialidad;
+
             if (!string.IsNullOrWhiteSpace(request.Telefono))
                 profesor.Telefono = request.Telefono;
 
@@ -100,7 +93,37 @@ namespace Application.Services
             if (request.FechaNacimiento.HasValue)
                 profesor.FechaNacimiento = request.FechaNacimiento.Value;
 
+            if (request.SucursalId.HasValue)
+                profesor.SucursalId = request.SucursalId.Value;
+
             return _profesorRepository.Update(profesor);
+        }
+
+        public bool Delete(int id)
+        {
+            var profesor = _profesorRepository.GetById(id);
+            if (profesor == null) return false;
+
+            // Desactivar en lugar de eliminar
+            profesor.Activo = false;
+            return _profesorRepository.Update(profesor);
+        }
+
+        private ProfesorResponse MapToProfesorResponse(Profesor profesor)
+        {
+            return new ProfesorResponse
+            {
+                Id = profesor.Id,
+                Nombre = profesor.Nombre,
+                Apellido = profesor.Apellido,
+                Especialidad = profesor.Especialidad,
+                Dni = profesor.Dni,
+                Email = profesor.Email,
+                Telefono = profesor.Telefono,
+                FechaNacimiento = profesor.FechaNacimiento,
+                SucursalId = profesor.SucursalId,
+                Activo = profesor.Activo
+            };
         }
     }
 }
