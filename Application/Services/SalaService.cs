@@ -1,6 +1,7 @@
 using Application.Abstractions;
 using Contract.Requests;
 using Contract.Responses;
+using Domain.Entities;
 
 namespace Application.Services
 {
@@ -58,6 +59,28 @@ namespace Application.Services
                 Descripcion = sala.Descripcion,
                 Activa = sala.Activa
             };
+        }
+
+        public bool Create(CreateSalaRequest request)
+        {
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.Nombre) ||
+                request.Capacidad <= 0)
+            {
+                return false;
+            }
+
+            var nuevaSala = new Sala
+            {
+                SucursalId = request.SucursalId,
+                Nombre = request.Nombre,
+                Tipo = request.Tipo,
+                Capacidad = request.Capacidad,
+                Descripcion = request.Descripcion,
+                Activa = true
+            };
+
+            return _salaRepository.Create(nuevaSala);
         }
 
         public bool Update(int id, UpdateSalaRequest request)

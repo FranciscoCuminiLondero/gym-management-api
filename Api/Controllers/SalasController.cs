@@ -42,6 +42,20 @@ namespace Presentation.Controllers
             return Ok(sala);
         }
 
+        [HttpPost]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Create([FromBody] CreateSalaRequest request)
+        {
+            if (request == null)
+                return BadRequest("La solicitud no puede ser nula.");
+
+            var resultado = _salaService.Create(request);
+            if (!resultado)
+                return BadRequest("No se pudo crear la sala. Verifique los datos.");
+
+            return Ok(new { message = "Sala creada exitosamente." });
+        }
+
         [HttpPut("{id}")]
         [Authorize(Policy = "AdminPolicy")]
         public IActionResult Update(int id, [FromBody] UpdateSalaRequest request)
