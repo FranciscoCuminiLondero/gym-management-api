@@ -17,6 +17,47 @@ namespace Presentation.Controllers
             _reservaService = reservaService;
         }
 
+        [HttpGet]
+        [Authorize]
+        public ActionResult<List<ReservaResponse>> Get([FromQuery] int? alumnoId, [FromQuery] int? claseId)
+        {
+            if (alumnoId.HasValue)
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
+
+                if (!isAdmin && userIdClaim != alumnoId.ToString())
+                {
+                    return StatusCode(403, "No tiene permisos para ver las reservas de otro usuario.");
+                }
+
+                var reservas = _reservaService.GetByAlumnoId(alumnoId.Value);
+                return Ok(reservas);
+            }
+
+            if (claseId.HasValue)
+            {
+                var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
+                var reservas = _reservaService.GetByClaseId(claseId.Value);
+
+                if (isAdmin)
+                {
+                    return Ok(new
+                    {
+                        total = reservas.Count,
+                        reservas = reservas
+                    });
+                }
+
+                return Ok(new
+                {
+                    total = reservas.Count
+                });
+            }
+
+            return BadRequest("Debe especificar alumnoId o claseId");
+        }
+
         [HttpPost]
         [Authorize]
         public ActionResult<bool> Create(CreateReservaRequest request)
@@ -43,43 +84,12 @@ namespace Presentation.Controllers
             return Ok(true);
         }
 
-        [HttpGet("alumno/{alumnoId}")]
+        [HttpPatch("{id}")]
         [Authorize]
-        public ActionResult<List<ReservaResponse>> GetByAlumnoId(int alumnoId)
+        public IActionResult Update(int id, [FromBody] dynamic request)
         {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
-
-            if (!isAdmin && userIdClaim != alumnoId.ToString())
-            {
-                return StatusCode(403, "No tiene permisos para ver las reservas de otro usuario.");
-            }
-
-            var reservas = _reservaService.GetByAlumnoId(alumnoId);
-            return Ok(reservas);
-        }
-
-        [HttpGet("clase/{claseId}")]
-        [Authorize]
-        public ActionResult GetByClaseId(int claseId)
-        {
-            var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
-
-            var reservas = _reservaService.GetByClaseId(claseId);
-
-            if (isAdmin)
-            {
-                return Ok(new
-                {
-                    total = reservas.Count,
-                    reservas = reservas
-                });
-            }
-
-            return Ok(new
-            {
-                total = reservas.Count
-            });
+            // Para compatibilidad con frontend, acepta PATCH aunque no se implemente aún
+            return StatusCode(501, "Actualización de reservas no implementada aún");
         }
 
         [HttpDelete("{id}")]
