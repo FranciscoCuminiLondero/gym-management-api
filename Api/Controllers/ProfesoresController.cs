@@ -20,10 +20,12 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetAll()
+        public ActionResult GetAll([FromQuery] int? sucursalId)
         {
             var isAdmin = User.IsInRole("Administrador") || User.IsInRole("SuperAdministrador");
-            var profesores = _profesorService.GetAll();
+            var profesores = sucursalId.HasValue
+                ? _profesorService.GetBySucursalId(sucursalId.Value)
+                : _profesorService.GetAll();
 
             if (isAdmin)
             {
@@ -104,6 +106,37 @@ namespace Presentation.Controllers
                 return BadRequest("No se pudo actualizar el profesor. Verifique los datos.");
 
             return Ok(new { message = "Profesor actualizado exitosamente." });
+        }
+
+        [HttpPatch("{id}")]
+        [Authorize]
+        public IActionResult PartialUpdate(int id, UpdateProfesorRequest request)
+        {
+            return Update(id, request);
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Create([FromBody] CreateProfesorRequest request)
+        {
+            if (request == null)
+                return BadRequest("La solicitud no puede estar vacía.");
+
+            var resultado = _profesorService.Create(request);
+            if (!resultado)
+                return BadRequest("No se pudo crear el profesor. Verifique los datos.");
+
+            return Ok(new { message = "Profesor creado exitosamente." });
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Delete(int id)
+        {
+            var resultado = _profesorService.Delete(id);
+            if (!resultado) return NotFound("Profesor no encontrado.");
+
+            return Ok(new { message = "Profesor eliminado exitosamente." });
         }
     }
 }
