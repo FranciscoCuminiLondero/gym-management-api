@@ -932,35 +932,6 @@ dotnet ef migrations remove --project Infrastructure --startup-project Api
 
 ---
 
-## 📚 Documentación Adicional
-
-El proyecto incluye documentación detallada en archivos markdown:
-
-- **`AUTENTICACION-REVISION.md`**: Revisión completa de seguridad JWT
-  - Análisis de implementación vs documentación
-  - Mejoras de seguridad aplicadas (PBKDF2, límite de intentos)
-  - Recomendaciones para producción
-
-- **`CONFIGURACION-VARIABLES-ENTORNO.md`**: Guía de configuración segura
-  - Configuración de JWT_SECRET_KEY
-  - Variables de entorno por plataforma (Azure, Docker, Kubernetes)
-  - Generación de claves seguras
-  - Troubleshooting común
-
-- **`AUTORIZACION-GUIA.md`**: Guía completa de autorización por roles
-  - Ejemplos de uso de atributos `[Authorize]`
-  - Políticas personalizadas
-  - Validación manual de permisos
-  - Mejores prácticas de seguridad
-
-- **`SWAGGER-JWT-GUIA.md`**: Tutorial de uso de Swagger con JWT
-  - Cómo autenticarse en Swagger
-  - Uso del botón "Authorize"
-  - Troubleshooting común
-  - Ejemplos visuales paso a paso
-
----
-
 ## 🧩 Patrones y Principios
 
 ### Clean Architecture
