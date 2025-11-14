@@ -228,7 +228,10 @@ Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURA
 | `/api/profesores` | GET | 🌐 Público | Lista todos los profesores |
 | `/api/profesores/{id}` | GET | 🌐 Público | Ver perfil de profesor |
 | `/api/profesores/{id}/clases` | GET | 🔒 Owner/Admin | Ver clases del profesor (solo propias o admin) |
-| `/api/profesores/{id}` | PUT | 🔒 Owner/Admin | Actualizar datos del profesor |
+| `/api/profesores` | POST | 🔐 Admin | Crear nuevo profesor |
+| `/api/profesores/{id}` | PATCH | 🔒 Owner/Admin | Actualizar especialidad, teléfono, sucursal |
+| `/api/profesores/{id}` | PUT | 🔒 Owner/Admin | Actualizar datos completos del profesor |
+| `/api/profesores/{id}` | DELETE | 🔐 Admin | Desactivar profesor |
 
 ### 🏋️ Clases
 
@@ -238,6 +241,7 @@ Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURA
 | `/api/clases/fecha/{fecha}` | GET | 🔒 Autenticado | Clases disponibles por fecha |
 | `/api/clases/{id}` | GET | 🔒 Autenticado | Detalles de una clase |
 | `/api/clases` | POST | 🔐 Profesor/Admin | Crear nueva clase (profesor solo para sí mismo) |
+| `/api/clases/{id}` | PATCH | 🔐 Profesor/Admin | Actualizar datos parciales de clase |
 | `/api/clases/{id}` | DELETE | 🔐 Profesor/Admin | Eliminar clase (profesor solo propias) |
 
 ### 📅 Reservas
@@ -245,8 +249,9 @@ Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURA
 | Endpoint | Método | Autorización | Descripción |
 |----------|--------|--------------|-------------|
 | `/api/reservas` | POST | 🔒 Autenticado | Crear nueva reserva (solo para sí mismo) |
-| `/api/reservas/alumno/{alumnoId}` | GET | 🔒 Owner/Admin | Reservas de un alumno (solo propias o admin) |
-| `/api/reservas/clase/{claseId}` | GET | 🔒 Autenticado | Reservas de una clase (total para usuario, detalle para admin) |
+| `/api/reservas?alumnoId={id}` | GET | 🔒 Owner/Admin | Reservas de un alumno (solo propias o admin) |
+| `/api/reservas?claseId={id}` | GET | 🔒 Autenticado | Reservas de una clase (total para usuario, detalle para admin) |
+| `/api/reservas/{id}` | PATCH | 🔒 Owner/Admin | Actualizar estado de reserva (cancelar) |
 | `/api/reservas/{id}` | DELETE | 🔒 Owner/Admin | Cancelar reserva (solo propia o admin) |
 
 ### 💳 Planes
@@ -254,8 +259,18 @@ Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURA
 | Endpoint | Método | Autorización | Descripción |
 |----------|--------|--------------|-------------|
 | `/api/planes` | GET | 🌐 Público | Ver planes disponibles |
+| `/api/planes/{id}` | GET | 🌐 Público | Ver detalles de un plan |
 | `/api/planes` | POST | 🔐 Admin | Crear nuevo plan |
+| `/api/planes/{id}` | PATCH | 🔐 Admin | Actualizar datos parciales del plan |
 | `/api/planes/{id}` | DELETE | 🔐 Admin | Eliminar plan |
+
+### 💪 Membresías
+
+| Endpoint | Método | Autorización | Descripción |
+|----------|--------|--------------|-------------|
+| `/api/membresias?alumnoId={id}` | GET | 🔒 Owner/Admin | Ver membresías de un alumno |
+| `/api/membresias` | POST | 🔐 Admin | Crear nueva membresía |
+| `/api/membresias/{id}` | PATCH | 🔐 Admin | Actualizar datos de membresía |
 
 ### 🏢 Sucursales
 
@@ -264,6 +279,7 @@ Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURA
 | `/api/sucursales` | GET | 🌐 Público | Ver sucursales activas |
 | `/api/sucursales/all` | GET | 🔐 Admin | Ver todas (incluidas inactivas) |
 | `/api/sucursales/{id}` | GET | 🌐 Público | Detalles de sucursal |
+| `/api/sucursales` | POST | 🔐 Admin | Crear nueva sucursal |
 | `/api/sucursales/{id}` | PUT | 🔐 Admin | Actualizar sucursal |
 | `/api/sucursales/{id}` | DELETE | 🔐 Admin | Desactivar sucursal |
 
@@ -274,6 +290,7 @@ Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURA
 | `/api/salas` | GET | 🌐 Público | Ver todas las salas |
 | `/api/salas/sucursal/{id}` | GET | 🌐 Público | Salas de una sucursal |
 | `/api/salas/{id}` | GET | 🌐 Público | Detalles de sala |
+| `/api/salas` | POST | 🔐 Admin | Crear nueva sala |
 | `/api/salas/{id}` | PUT | 🔐 Admin | Actualizar sala |
 | `/api/salas/{id}` | DELETE | 🔐 Admin | Desactivar sala |
 
@@ -296,11 +313,17 @@ Ver documentación completa en: [`CONFIGURACION-VARIABLES-ENTORNO.md`](CONFIGURA
 - `CreatePlanRequest`: Nuevo plan
 - `CreateMembresiaRequest`: Nueva membresía
 - `CreateAlumnoRequest`: Registro de alumno
-- `CreateProfesorRequest`: Registro de profesor
+- `CreateProfesorRequest`: Registro de profesor (con password)
+- `CreateSucursalRequest`: Nueva sucursal
+- `CreateSalaRequest`: Nueva sala
 - `UpdateAlumnoRequest`: Actualización de datos de alumno
 - `UpdateProfesorRequest`: Actualización de datos de profesor
 - `UpdateSucursalRequest`: Actualización de sucursal
 - `UpdateSalaRequest`: Actualización de sala
+- `UpdateClaseRequest`: Actualización de clase
+- `UpdateReservaRequest`: Actualización de estado de reserva
+- `UpdatePlanRequest`: Actualización de plan
+- `UpdateMembresiaRequest`: Actualización de membresía
 
 ### Responses
 
@@ -363,6 +386,7 @@ Estas entidades se **eliminan físicamente** de la base de datos:
 | Entidad | Método | Tipo | Rol Requerido | Endpoint |
 |---------|--------|------|---------------|----------|
 | Usuario | DELETE | Desactivación | Admin | `/api/usuarios/{id}` |
+| Profesor | DELETE | Desactivación | Admin | `/api/profesores/{id}` |
 | Sucursal | DELETE | Desactivación | Admin | `/api/sucursales/{id}` |
 | Sala | DELETE | Desactivación | Admin | `/api/salas/{id}` |
 | Plan | DELETE | Física | Admin | `/api/planes/{id}` |
@@ -540,18 +564,56 @@ POST /api/auth/register
 
 #### Crear un Profesor (requiere ser Admin)
 ```json
-POST /api/auth/register
+POST /api/profesores
 Authorization: Bearer {admin-token}
 
 {
   "nombre": "Carlos",
   "apellido": "Rodríguez",
+  "dni": "98765432",
   "email": "carlos.prof@gym.com",
   "password": "Profesor123!",
-  "dni": "98765432",
   "telefono": "555-0123",
-  "fechaNacimiento": "1985-03-15",
-  "role": "Profesor"
+  "fechaNacimiento": "1985-03-15"
+}
+```
+
+#### Actualizar Especialidad de Profesor (PATCH)
+```json
+PATCH /api/profesores/2
+Authorization: Bearer {profesor-token}
+
+{
+  "especialidad": "Pilates y Yoga",
+  "telefono": "555-8888",
+  "sucursalId": 2
+}
+```
+
+#### Crear una Sucursal (solo Admin)
+```json
+POST /api/sucursales
+Authorization: Bearer {admin-token}
+
+{
+  "nombre": "Sucursal Sur",
+  "direccion": "Av. Sur 789",
+  "telefono": "555-0003",
+  "email": "sur@gym.com"
+}
+```
+
+#### Crear una Sala (solo Admin)
+```json
+POST /api/salas
+Authorization: Bearer {admin-token}
+
+{
+  "sucursalId": 1,
+  "nombre": "Sala C",
+  "tipo": "Cardio",
+  "capacidad": 25,
+  "descripcion": "Sala equipada con máquinas cardiovasculares"
 }
 ```
 
@@ -609,6 +671,18 @@ DELETE /api/sucursales/1
 Authorization: Bearer {admin-token}
 ```
 
+#### Desactivar una Sala (solo Admin)
+```bash
+DELETE /api/salas/1
+Authorization: Bearer {admin-token}
+```
+
+#### Desactivar un Profesor (solo Admin)
+```bash
+DELETE /api/profesores/2
+Authorization: Bearer {admin-token}
+```
+
 #### Eliminar una Clase (Profesor o Admin)
 ```bash
 DELETE /api/clases/1
@@ -635,7 +709,54 @@ Authorization: Bearer {profesor-token}
 {
   "nombre": "Carlos Eduardo",
   "apellido": "Rodríguez García",
-  "telefono": "555-8888"
+  "telefono": "555-8888",
+  "email": "carlos.nuevo@gym.com",
+  "fechaNacimiento": "1985-08-10"
+}
+```
+
+#### Actualizar Clase (PATCH)
+```json
+PATCH /api/clases/1
+Authorization: Bearer {profesor-token}
+
+{
+  "nombre": "Yoga Avanzado",
+  "duracionMinutos": 90,
+  "capacidad": 15
+}
+```
+
+#### Actualizar Plan (PATCH)
+```json
+PATCH /api/planes/1
+Authorization: Bearer {admin-token}
+
+{
+  "precio": 6499.99,
+  "maxReservasPorMes": 25
+}
+```
+
+#### Actualizar Membresía (PATCH)
+```json
+PATCH /api/membresias/1
+Authorization: Bearer {admin-token}
+
+{
+  "planId": 2,
+  "fechaFin": "2025-12-31",
+  "activa": true
+}
+```
+
+#### Actualizar Estado de Reserva (PATCH)
+```json
+PATCH /api/reservas/1
+Authorization: Bearer {alumno-token}
+
+{
+  "estado": "cancelada"
 }
 ```
 
@@ -680,7 +801,7 @@ Authorization: Bearer {profesor-token-id-2}
   "descripcion": "Clase de yoga",
   "duracionMinutos": 60,
   "horaInicio": "08:00:00",
-  "fecha": "2025-10-25",
+  "fecha": "2025-11-25",
   "capacidad": 20
 }
 // ✅ Resultado: 200 OK - Clase creada
@@ -701,7 +822,7 @@ Authorization: Bearer {profesor-token-id-2}
 
 #### ❌ Alumno intenta ver reservas de otro alumno
 ```bash
-GET /api/reservas/alumno/5
+GET /api/reservas?alumnoId=5
 Authorization: Bearer {alumno-token-id-3}
 
 # ❌ Resultado: 403 Forbidden - "No tiene permisos para ver las reservas de otro usuario."
@@ -709,19 +830,19 @@ Authorization: Bearer {alumno-token-id-3}
 
 #### ❌ Alumno intenta reservar 2 clases el mismo día
 ```json
-# Primera reserva (Clase del 25 Oct)
+# Primera reserva (Clase del 25 Nov)
 POST /api/reservas
 {
   "alumnoId": 3,
-  "claseId": 1  // Fecha: 2025-10-25
+  "claseId": 1  // Fecha: 2025-11-25
 }
 // ✅ Resultado: 200 OK
 
-# Segunda reserva (Otra clase del 25 Oct)
+# Segunda reserva (Otra clase del 25 Nov)
 POST /api/reservas
 {
   "alumnoId": 3,
-  "claseId": 5  // Fecha: 2025-10-25
+  "claseId": 5  // Fecha: 2025-11-25
 }
 // ❌ Resultado: 400 Bad Request - "No se pudo crear la reserva"
 ```
@@ -744,7 +865,7 @@ POST /api/reservas
 #### ✅ Ver reservas según rol (Privacidad)
 ```bash
 # Como Alumno/Profesor
-GET /api/reservas/clase/1
+GET /api/reservas?claseId=1
 Authorization: Bearer {alumno-token}
 
 # Respuesta:
@@ -753,7 +874,7 @@ Authorization: Bearer {alumno-token}
 }
 
 # Como Administrador
-GET /api/reservas/clase/1
+GET /api/reservas?claseId=1
 Authorization: Bearer {admin-token}
 
 # Respuesta:
@@ -764,7 +885,7 @@ Authorization: Bearer {admin-token}
       "id": 1,
       "alumnoId": 3,
       "claseId": 1,
-      "fechaReserva": "2025-10-24",
+      "fechaReserva": "2025-11-24",
       "activo": true
     },
     // ... más reservas
