@@ -8,6 +8,7 @@ namespace Application.Services
         List<SucursalResponse> GetAll();
         List<SucursalResponse> GetActivas();
         SucursalResponse? GetById(int id);
+        bool Create(CreateSucursalRequest request);
         bool Update(int id, UpdateSucursalRequest request);
         bool Desactivar(int id);
     }
