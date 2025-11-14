@@ -6,5 +6,7 @@
         public string Descripcion { get; set; } = string.Empty;
         public decimal Precio { get; set; }
         public int DuracionDias { get; set; }
+        public int? MaxReservasPorMes { get; set; }
+        public List<string>? TiposPermitidos { get; set; } // ["general", "especializada"]
     }
 }
