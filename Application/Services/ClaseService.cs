@@ -2,6 +2,7 @@
 using Contract.Requests;
 using Contract.Responses;
 using Domain.Entities;
+using System.Text.Json;
 
 namespace Application.Services
 {
@@ -35,10 +36,16 @@ namespace Application.Services
                     SucursalId = request.SucursalId,
                     Nombre = request.Nombre,
                     Descripcion = request.Descripcion,
+                    Imagen = request.Imagen,
+                    Tipo = request.Tipo,
                     DuracionMinutos = request.DuracionMinutos,
                     HoraInicio = request.HoraInicio,
                     Fecha = request.Fecha,
+                    Dias = request.Dias != null && request.Dias.Any()
+                        ? JsonSerializer.Serialize(request.Dias)
+                        : null,
                     Capacidad = request.Capacidad,
+                    MostrarEnHome = request.MostrarEnHome,
                     Activa = true
                 };
 
@@ -53,41 +60,13 @@ namespace Application.Services
         public List<ClaseResponse> GetAll()
         {
             var clases = _claseRepository.GetAll().Where(c => c.Activa).ToList();
-            return clases.Select(c => new ClaseResponse
-            {
-                Id = c.Id,
-                ProfesorId = c.ProfesorId,
-                SalaId = c.SalaId,
-                SucursalId = c.SucursalId,
-                Nombre = c.Nombre,
-                Descripcion = c.Descripcion,
-                Duracion = c.DuracionMinutos,
-                HoraInicio = c.HoraInicio,
-                Fecha = c.Fecha,
-                Capacidad = c.Capacidad,
-                CupoDisponible = c.Capacidad - _reservaRepository.GetByClaseId(c.Id).Count,
-                Activa = c.Activa
-            }).ToList();
+            return clases.Select(MapToClaseResponse).ToList();
         }
 
         public List<ClaseResponse> GetDisponiblesPorFecha(DateOnly fecha)
         {
             var clases = _claseRepository.GetDisponiblesPorFecha(fecha);
-            return clases.Select(c => new ClaseResponse
-            {
-                Id = c.Id,
-                ProfesorId = c.ProfesorId,
-                SalaId = c.SalaId,
-                SucursalId = c.SucursalId,
-                Nombre = c.Nombre,
-                Descripcion = c.Descripcion,
-                Duracion = c.DuracionMinutos,
-                HoraInicio = c.HoraInicio,
-                Fecha = c.Fecha,
-                Capacidad = c.Capacidad,
-                CupoDisponible = c.Capacidad - _reservaRepository.GetByClaseId(c.Id).Count,
-                Activa = c.Activa
-            }).ToList();
+            return clases.Select(MapToClaseResponse).ToList();
         }
 
         public List<ClaseResponse> GetByProfesorId(int profesorId)
@@ -96,27 +75,114 @@ namespace Application.Services
                 .Where(c => c.ProfesorId == profesorId && c.Activa)
                 .ToList();
 
-            return clases.Select(c => new ClaseResponse
-            {
-                Id = c.Id,
-                ProfesorId = c.ProfesorId,
-                SalaId = c.SalaId,
-                SucursalId = c.SucursalId,
-                Nombre = c.Nombre,
-                Descripcion = c.Descripcion,
-                Duracion = c.DuracionMinutos,
-                HoraInicio = c.HoraInicio,
-                Fecha = c.Fecha,
-                Capacidad = c.Capacidad,
-                CupoDisponible = c.Capacidad - _reservaRepository.GetByClaseId(c.Id).Count,
-                Activa = c.Activa
-            }).ToList();
+            return clases.Select(MapToClaseResponse).ToList();
+        }
+
+        public List<ClaseResponse> GetBySucursalId(int sucursalId)
+        {
+            var clases = _claseRepository.GetAll()
+                .Where(c => c.SucursalId == sucursalId && c.Activa)
+                .ToList();
+
+            return clases.Select(MapToClaseResponse).ToList();
         }
 
         public ClaseResponse? GetById(int id)
         {
             var clase = _claseRepository.GetById(id);
             if (clase == null) return null;
+
+            return MapToClaseResponse(clase);
+        }
+
+        public int? GetProfesorIdByClaseId(int claseId)
+        {
+            var clase = _claseRepository.GetById(claseId);
+            return clase?.ProfesorId;
+        }
+
+        public bool Update(int id, UpdateClaseRequest request)
+        {
+            var clase = _claseRepository.GetById(id);
+            if (clase == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(request.Nombre))
+                clase.Nombre = request.Nombre;
+
+            if (!string.IsNullOrWhiteSpace(request.Descripcion))
+                clase.Descripcion = request.Descripcion;
+
+            if (!string.IsNullOrWhiteSpace(request.Imagen))
+                clase.Imagen = request.Imagen;
+
+            if (!string.IsNullOrWhiteSpace(request.Tipo))
+                clase.Tipo = request.Tipo;
+
+            if (request.DuracionMinutos.HasValue && request.DuracionMinutos.Value > 0)
+                clase.DuracionMinutos = request.DuracionMinutos.Value;
+
+            if (request.HoraInicio.HasValue)
+                clase.HoraInicio = request.HoraInicio.Value;
+
+            if (request.Fecha.HasValue)
+                clase.Fecha = request.Fecha.Value;
+
+            if (request.Dias != null)
+            {
+                clase.Dias = request.Dias.Any()
+                    ? JsonSerializer.Serialize(request.Dias)
+                    : null;
+            }
+
+            if (request.Capacidad.HasValue && request.Capacidad.Value > 0)
+                clase.Capacidad = request.Capacidad.Value;
+
+            if (request.MostrarEnHome.HasValue)
+                clase.MostrarEnHome = request.MostrarEnHome.Value;
+
+            return _claseRepository.Update(clase);
+        }
+
+        public bool Delete(int id)
+        {
+            var clase = _claseRepository.GetById(id);
+            if (clase == null) return false;
+
+            return _claseRepository.Delete(clase);
+        }
+
+        private ClaseResponse MapToClaseResponse(Clase clase)
+        {
+            var cuposReservados = _reservaRepository.GetByClaseId(clase.Id).Count;
+            var cupoDisponible = clase.Capacidad - cuposReservados;
+
+            // Deserializar días
+            List<string> dias = new List<string>();
+            if (!string.IsNullOrWhiteSpace(clase.Dias))
+            {
+                try
+                {
+                    var diasDeserializados = JsonSerializer.Deserialize<List<string>>(clase.Dias);
+                    if (diasDeserializados != null)
+                        dias = diasDeserializados;
+                }
+                catch
+                {
+                    // Si falla, retornar lista vacía
+                }
+            }
+
+            // Calcular horarios ISO
+            var fechaBase = clase.Fecha.ToDateTime(TimeOnly.MinValue);
+            var horarioInicio = new DateTime(
+                fechaBase.Year,
+                fechaBase.Month,
+                fechaBase.Day,
+                clase.HoraInicio.Hour,
+                clase.HoraInicio.Minute,
+                0
+            );
+            var horarioFin = horarioInicio.AddMinutes(clase.DuracionMinutos);
 
             return new ClaseResponse
             {
@@ -126,27 +192,22 @@ namespace Application.Services
                 SucursalId = clase.SucursalId,
                 Nombre = clase.Nombre,
                 Descripcion = clase.Descripcion,
+                Imagen = clase.Imagen,
+                CupoMaximo = clase.Capacidad,
+                Tipo = clase.Tipo,
+                HorarioInicio = horarioInicio.ToString("yyyy-MM-ddTHH:mm:ss"),
+                HorarioFin = horarioFin.ToString("yyyy-MM-ddTHH:mm:ss"),
+                Dias = dias,
+                MostrarEnHome = clase.MostrarEnHome,
+                CuposActuales = cuposReservados,
+                CupoDisponible = cupoDisponible,
+                Activa = clase.Activa,
+                // Campos heredados para compatibilidad
                 Duracion = clase.DuracionMinutos,
                 HoraInicio = clase.HoraInicio,
                 Fecha = clase.Fecha,
-                Capacidad = clase.Capacidad,
-                CupoDisponible = clase.Capacidad - _reservaRepository.GetByClaseId(clase.Id).Count,
-                Activa = clase.Activa
+                Capacidad = clase.Capacidad
             };
-        }
-
-        public int? GetProfesorIdByClaseId(int claseId)
-        {
-            var clase = _claseRepository.GetById(claseId);
-            return clase?.ProfesorId;
-        }
-
-        public bool Delete(int id)
-        {
-            var clase = _claseRepository.GetById(id);
-            if (clase == null) return false;
-
-            return _claseRepository.Delete(clase);
         }
     }
 }
