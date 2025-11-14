@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions;
 using Contract.Requests;
+using Contract.Responses;
 using Domain.Entities;
 
 namespace Application.Services
@@ -13,10 +14,10 @@ namespace Application.Services
         private readonly IPagoService _pagoService;
 
         public MembresiaService(
-            IMembresiaRepository membresiaRepository, 
-            IAlumnoRepository alumnoRepository, 
+            IMembresiaRepository membresiaRepository,
+            IAlumnoRepository alumnoRepository,
             IUsuarioRepository usuarioRepository,
-            IPlanRepository planRepository, 
+            IPlanRepository planRepository,
             IPagoService pagoService)
         {
             _membresiaRepository = membresiaRepository;
@@ -25,6 +26,7 @@ namespace Application.Services
             _planRepository = planRepository;
             _pagoService = pagoService;
         }
+
         public bool AsociarMembresia(CreateMembresiaRequest request)
         {
             if (!_usuarioRepository.IsActivo(request.AlumnoId))
@@ -52,6 +54,47 @@ namespace Application.Services
             _pagoService.RegistrarPagoInicial(membresia.Id, plan.Precio);
 
             return true;
+        }
+
+        public bool Create(CreateMembresiaRequest request)
+        {
+            return AsociarMembresia(request);
+        }
+
+        public bool Update(int id, UpdateMembresiaRequest request)
+        {
+            var membresia = _membresiaRepository.GetById(id);
+            if (membresia == null) return false;
+
+            if (request.PlanId.HasValue)
+                membresia.PlanId = request.PlanId.Value;
+
+            if (request.FechaInicio.HasValue)
+                membresia.FechaInicio = request.FechaInicio.Value;
+
+            if (request.FechaFin.HasValue)
+                membresia.FechaFin = request.FechaFin.Value;
+
+            if (request.Activa.HasValue)
+                membresia.Activa = request.Activa.Value;
+
+            return _membresiaRepository.Update(membresia);
+        }
+
+        public List<MembresiaResponse> GetByAlumnoId(int alumnoId)
+        {
+            var membresias = _membresiaRepository.GetByCriterial(m => m.AlumnoId == alumnoId);
+
+            return membresias.Select(m => new MembresiaResponse
+            {
+                Id = m.Id,
+                PlanId = m.PlanId,
+                AlumnoId = m.AlumnoId,
+                FechaInicio = m.FechaInicio.ToString("yyyy-MM-dd"),
+                FechaFin = m.FechaFin.ToString("yyyy-MM-dd"),
+                Estado = m.Activa && m.FechaFin >= DateOnly.FromDateTime(DateTime.Today) ? "activa" : "expirada",
+                Activa = m.Activa
+            }).ToList();
         }
     }
 }
