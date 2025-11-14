@@ -78,15 +78,15 @@ namespace Presentation.Controllers
                 {
                     Id = membresiaActiva.Id,
                     PlanId = membresiaActiva.PlanId,
-                    FechaInicio = membresiaActiva.FechaInicio,
-                    FechaFin = membresiaActiva.FechaFin,
+                    FechaInicio = membresiaActiva.FechaInicio.ToString("yyyy-MM-dd"),
+                    FechaFin = membresiaActiva.FechaFin.ToString("yyyy-MM-dd"),
                     Activa = membresiaActiva.Activa
                 },
                 Reservas = reservas.Select(r => new ReservaResponse
                 {
                     Id = r.Id,
                     ClaseId = r.ClaseId,
-                    FechaReserva = r.FechaReserva,
+                    FechaReserva = r.FechaReserva.ToString("yyyy-MM-dd"),
                     Activo = r.Activo
                 }).ToList()
             };

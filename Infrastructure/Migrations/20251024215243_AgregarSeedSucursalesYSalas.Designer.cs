@@ -12,7 +12,7 @@ namespace Infrastructure.Migrations
 {
     [DbContext(typeof(GymDbContext))]
     [Migration("20251024215243_AgregarSeedSucursalesYSalas")]
-    partial class AgregarSeedSucursalesYSalas
+    partial class AddSeedSucursalesAndSalas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

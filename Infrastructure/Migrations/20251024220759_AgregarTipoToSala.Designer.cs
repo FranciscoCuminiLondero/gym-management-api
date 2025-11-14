@@ -12,7 +12,7 @@ namespace Infrastructure.Migrations
 {
     [DbContext(typeof(GymDbContext))]
     [Migration("20251024220759_AgregarTipoToSala")]
-    partial class AgregarTipoToSala
+    partial class AddTipoToSala
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

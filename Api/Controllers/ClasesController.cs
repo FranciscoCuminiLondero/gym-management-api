@@ -29,9 +29,12 @@ namespace Presentation.Controllers
 
         [HttpGet("fecha/{fecha}")]
         [Authorize]
-        public ActionResult<List<ClaseResponse>> GetPorFecha(DateOnly fecha)
+        public ActionResult<List<ClaseResponse>> GetPorFecha(string fecha)
         {
-            var clases = _claseService.GetDisponiblesPorFecha(fecha);
+            if (!DateOnly.TryParse(fecha, out var fechaParsed))
+                return BadRequest("Formato de fecha inválido. Use YYYY-MM-DD.");
+
+            var clases = _claseService.GetDisponiblesPorFecha(fechaParsed);
             return Ok(clases);
         }
 

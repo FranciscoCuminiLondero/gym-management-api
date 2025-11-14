@@ -80,7 +80,7 @@ namespace Application.Services
                 Id = reserva.Id,
                 AlumnoId = reserva.AlumnoId,
                 ClaseId = reserva.ClaseId,
-                FechaReserva = reserva.FechaReserva,
+                FechaReserva = reserva.FechaReserva.ToString("yyyy-MM-dd"),
                 Activo = reserva.Activo
             }).ToList();
         }
@@ -93,7 +93,7 @@ namespace Application.Services
                 Id = reserva.Id,
                 AlumnoId = reserva.AlumnoId,
                 ClaseId = reserva.ClaseId,
-                FechaReserva = reserva.FechaReserva,
+                FechaReserva = reserva.FechaReserva.ToString("yyyy-MM-dd"),
                 Activo = reserva.Activo
             }).ToList();
         }
