@@ -53,7 +53,8 @@ namespace Application.Services
             if (request == null ||
                 string.IsNullOrWhiteSpace(request.Nombre) ||
                 string.IsNullOrWhiteSpace(request.Apellido) ||
-                string.IsNullOrWhiteSpace(request.Email))
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Password))
             {
                 return false;
             }
@@ -63,13 +64,23 @@ namespace Application.Services
                 return false;
             }
 
+            // Hash del password (usando el mismo método que AuthService)
+            string passwordHash;
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                var hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(request.Password));
+                passwordHash = System.Convert.ToBase64String(hashedBytes);
+            }
+
             var nuevoProfesor = new Profesor
             {
                 Nombre = request.Nombre,
                 Apellido = request.Apellido,
                 Dni = request.Dni,
                 Email = request.Email,
+                PasswordHash = passwordHash,
                 Telefono = request.Telefono,
+                FechaNacimiento = request.FechaNacimiento,
                 Activo = true
             };
 

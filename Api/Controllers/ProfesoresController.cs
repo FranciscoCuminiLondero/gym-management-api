@@ -84,6 +84,20 @@ namespace Presentation.Controllers
             return Ok(clases);
         }
 
+        [HttpPost]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Create([FromBody] CreateProfesorRequest request)
+        {
+            if (request == null)
+                return BadRequest("La solicitud no puede estar vacía.");
+
+            var resultado = _profesorService.Create(request);
+            if (!resultado)
+                return BadRequest("No se pudo crear el profesor. Verifique los datos.");
+
+            return Ok(new { message = "Profesor creado exitosamente." });
+        }
+
         [HttpPut("{id}")]
         [Authorize]
         public IActionResult Update(int id, UpdateProfesorRequest request)
