@@ -24,6 +24,15 @@ namespace Presentation.Controllers
             return Ok(planes);
         }
 
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public ActionResult<PlanResponse> GetById(int id)
+        {
+            var plan = _planService.GetById(id);
+            if (plan == null) return NotFound("Plan no encontrado.");
+            return Ok(plan);
+        }
+
         [HttpPost]
         [Authorize(Policy = "AdminPolicy")]
         public IActionResult Create(CreatePlanRequest request)
@@ -35,7 +44,21 @@ namespace Presentation.Controllers
             if (!resultado)
                 return BadRequest("No se pudo crear el plan. Verifique los datos.");
 
-            return Ok();
+            return Ok(new { message = "Plan creado exitosamente." });
+        }
+
+        [HttpPatch("{id}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Update(int id, [FromBody] UpdatePlanRequest request)
+        {
+            if (request == null)
+                return BadRequest("La solicitud no puede ser nula.");
+
+            var resultado = _planService.Update(id, request);
+            if (!resultado)
+                return NotFound("Plan no encontrado.");
+
+            return Ok(new { message = "Plan actualizado exitosamente." });
         }
 
         [HttpDelete("{id}")]
